@@ -1,3 +1,4 @@
+import io
 import json
 from datetime import date
 import streamlit as st
@@ -18,6 +19,11 @@ DEFAULT_DAYS = 26
 SPREADSHEET_NAME = "TSM_Sales_Database"
 SALES_SHEET = "Sales_Entries"
 TARGET_SHEET = "SR_Monthly_Targets"
+
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
 
 # --- Modern & Mobile Responsive CSS ---
 st.markdown(
@@ -42,7 +48,6 @@ st.markdown(
             padding-right: 1.5rem;
         }
 
-        /* Sidebar Styling */
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -62,7 +67,6 @@ st.markdown(
             border-radius: 8px !important;
         }
 
-        /* Hero Banner */
         .hero-box {
             background: linear-gradient(125deg, #0f172a 0%, #1d4ed8 52%, #0284c7 100%);
             color: #ffffff;
@@ -71,8 +75,6 @@ st.markdown(
             margin-bottom: 20px;
             box-shadow: 0 12px 28px rgba(29, 78, 216, 0.18);
             border: 1px solid rgba(255, 255, 255, 0.16);
-            position: relative;
-            overflow: hidden;
         }
         .hero-box h1 {
             color: #ffffff !important;
@@ -91,7 +93,6 @@ st.markdown(
             opacity: 0.96;
         }
 
-        /* Section Headings */
         .section-heading {
             display: flex;
             align-items: center;
@@ -104,7 +105,6 @@ st.markdown(
             border-bottom: 2px solid #e2e8f0;
         }
 
-        /* Bordered Container Card Enhancement */
         [data-testid="stVerticalBlockBorderWrapper"] {
             background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(8px);
@@ -115,7 +115,6 @@ st.markdown(
             margin-bottom: 14px;
         }
 
-        /* KPI Metric Cards */
         [data-testid="stMetric"] {
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -144,7 +143,6 @@ st.markdown(
             font-weight: 600 !important;
         }
 
-        /* SKU Cards */
         .sku-card {
             border-radius: 16px;
             padding: 18px 20px;
@@ -187,13 +185,12 @@ st.markdown(
             margin: 3px 0;
         }
 
-        /* Form Inputs & Buttons */
         .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] > div, .stDateInput input {
             border-radius: 10px !important;
             border-color: #cbd5e1 !important;
             font-size: 0.95rem !important;
         }
-        .stButton > button, .stFormSubmitButton > button {
+        .stButton > button, .stFormSubmitButton > button, .stDownloadButton > button {
             border-radius: 11px !important;
             font-weight: 700 !important;
             font-size: 0.96rem !important;
@@ -205,12 +202,11 @@ st.markdown(
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
             transition: all 0.18s ease;
         }
-        .stButton > button:hover, .stFormSubmitButton > button:hover {
+        .stButton > button:hover, .stFormSubmitButton > button:hover, .stDownloadButton > button:hover {
             background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
             box-shadow: 0 6px 16px rgba(29, 78, 216, 0.3);
         }
 
-        /* Dataframe Table */
         [data-testid="stDataFrame"] {
             border-radius: 14px !important;
             overflow: hidden !important;
@@ -218,7 +214,6 @@ st.markdown(
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
         }
 
-        /* --- Mobile Responsiveness (<= 768px) --- */
         @media (max-width: 768px) {
             .block-container {
                 padding-top: 0.85rem;
@@ -226,7 +221,6 @@ st.markdown(
                 padding-left: 0.8rem;
                 padding-right: 0.8rem;
             }
-
             .hero-box {
                 padding: 16px 16px;
                 border-radius: 14px;
@@ -238,12 +232,10 @@ st.markdown(
             .hero-box p {
                 font-size: 0.84rem !important;
             }
-
             .section-heading {
                 font-size: 1.04rem;
                 margin: 14px 0 8px 0;
             }
-
             [data-testid="stMetric"] {
                 padding: 11px 12px;
                 border-radius: 12px;
@@ -258,7 +250,6 @@ st.markdown(
             [data-testid="stMetricDelta"] > div {
                 font-size: 0.74rem !important;
             }
-
             .sku-card {
                 padding: 14px 14px;
                 border-radius: 13px;
@@ -272,12 +263,10 @@ st.markdown(
                 font-size: 0.86rem;
                 line-height: 1.5;
             }
-
-            .stButton > button, .stFormSubmitButton > button {
+            .stButton > button, .stFormSubmitButton > button, .stDownloadButton > button {
                 min-height: 46px;
                 font-size: 0.92rem !important;
             }
-
             [data-testid="stDataFrame"] {
                 font-size: 0.8rem !important;
             }
@@ -291,7 +280,7 @@ SALES_COLS = [
     "Date",
     "SR_Slot",
     "SR_Name",
-    "Summary_Type",     # "Half Summary" বা "Full Summary"
+    "Summary_Type",
     "Pen_Order_Pcs",
     "Stat_Order_Pcs",
     "Khata_Order_BDT",
@@ -318,11 +307,6 @@ INITIAL_TARGETS = [
     ["SR-6", "SR 6", 26, 5000.0, 3000.0, 2.5],
 ]
 
-SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
-]
-
 
 def safe_int(val, default=0, min_val=0):
     try:
@@ -342,6 +326,7 @@ def safe_float(val, default=0.0, min_val=0.0):
 
 @st.cache_resource
 def connect_sheets():
+    """Google Drive & Google Sheets সার্ভিস অ্যাকাউন্ট দিয়ে সংযোগ স্থাপন করে।"""
     if "gcp_service_account" not in st.secrets:
         st.error("Streamlit Secrets-এ `gcp_service_account` পাওয়া যায়নি।")
         st.stop()
@@ -460,12 +445,23 @@ def effective_month_rows(df_month, sr_slot):
     return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame(columns=SALES_COLS)
 
 
+def build_excel_bytes(sheets_dict):
+    """একাধিক DataFrame থেকে ডাউনলোডযোগ্য .xlsx ফাইল তৈরি করে।"""
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        for sheet_name, df in sheets_dict.items():
+            clean_df = df.drop(columns=["Dt"], errors="ignore")
+            clean_df.to_excel(writer, sheet_name=sheet_name[:31], index=False)
+    buf.seek(0)
+    return buf.getvalue()
+
+
 try:
     sales_ws, target_ws = connect_sheets()
     targets_df = read_targets(target_ws)
     sales_df = read_sales(sales_ws)
 except Exception as e:
-    st.error(f"Google Sheets সংযোগে সমস্যা: {e}")
+    st.error(f"Google Drive / Sheets সংযোগে সমস্যা: {e}")
     st.stop()
 
 st.sidebar.title("📊 মেনু / Navigation")
@@ -604,7 +600,7 @@ if mode == "SR এন্ট্রি ও আমার রিপোর্ট":
                 updated.loc[sr_idx, "Stat_Monthly_Target_Pcs"] = float(new_stat_t)
                 updated.loc[sr_idx, "Khata_Monthly_Target_Ton"] = float(new_khata_t_ton)
                 save_targets(target_ws, updated)
-                st.success("মাসিক টার্গেট সেভ হয়েছে!")
+                st.success("মাসিক টার্গেট Google Sheet-এ সেভ হয়েছে!")
                 st.rerun()
 
         st.markdown(f"**মাসিক সেলস বক্স ({month_prefix} — দৈনিক এন্ট্রি থেকে অটো যোগ ও টন রূপান্তর):**")
@@ -664,7 +660,7 @@ if mode == "SR এন্ট্রি ও আমার রিপোর্ট":
                         int(memo_cnt),
                         note_txt.strip(),
                     ])
-                    st.success("ডেইলি এন্ট্রি সেভ হয়েছে এবং মাসিক সেলসে (টাকা ও টন) যোগ হয়েছে!")
+                    st.success("ডেইলি এন্ট্রি Google Sheet-এ সেভ হয়েছে এবং মাসিক সেলসে (টাকা ও টন) যোগ হয়েছে!")
                     st.rerun()
 
     st.markdown('<div class="section-heading">📋 আমার পূর্বের এন্ট্রিসমূহ</div>', unsafe_allow_html=True)
@@ -673,6 +669,16 @@ if mode == "SR এন্ট্রি ও আমার রিপোর্ট":
         st.info("এখনও কোনো এন্ট্রি পাওয়া যায়নি।")
     else:
         st.dataframe(my_logs.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
+        excel_my = build_excel_bytes({
+            f"{sr_slot}_Summary": summary_df[summary_df["SR_Slot"] == sr_slot],
+            f"{sr_slot}_Entries": my_logs,
+        })
+        st.download_button(
+            label="📥 আমার রিপোর্ট Excel (.xlsx) ডাউনলোড করুন",
+            data=excel_my,
+            file_name=f"{sr_slot}_Sales_Report_{sel_date_str}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 
 # ==============================================================================
@@ -785,10 +791,19 @@ else:
         "Khata_M_Target_Ton": khata_m_tgt_ton_tot,
         "Day_Memo": int(summary_df["Day_Memo"].sum()),
     }])
-    st.dataframe(
-        pd.concat([summary_df[display_cols], total_row[display_cols]], ignore_index=True),
-        width="stretch",
-        hide_index=True,
+    combined_summary = pd.concat([summary_df[display_cols], total_row[display_cols]], ignore_index=True)
+    st.dataframe(combined_summary, width="stretch", hide_index=True)
+
+    excel_all = build_excel_bytes({
+        "SR_Summary": combined_summary,
+        "Monthly_Targets": targets_df,
+        "All_Sales_Entries": sales_df,
+    })
+    st.download_button(
+        label="📥 সম্পূর্ণ টিম রিপোর্ট Excel (.xlsx) ডাউনলোড করুন",
+        data=excel_all,
+        file_name=f"TSM_All_SR_Report_{sel_date_str}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
 
     st.markdown('<div class="section-heading">🗂️ সব এন্ট্রি লগ</div>', unsafe_allow_html=True)
