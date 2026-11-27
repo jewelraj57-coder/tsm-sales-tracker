@@ -7,201 +7,6 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="TSM Sales Tracker", layout="wide")
 
-# --- Colorful & Mobile Responsive Styling ---
-st.markdown(
-    """
-    <style>
-        .stApp {
-            background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 40%, #f1f5f9 100%);
-        }
-
-        .block-container {
-            padding-top: 1.2rem;
-            padding-bottom: 2.5rem;
-            padding-left: 1.4rem;
-            padding-right: 1.4rem;
-        }
-
-        .hero-box {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #0ea5e9 100%);
-            color: #ffffff;
-            padding: 18px 22px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.16);
-        }
-
-        .hero-box h1 {
-            color: #ffffff !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            font-size: 1.8rem !important;
-            font-weight: 800 !important;
-        }
-
-        .hero-box p {
-            color: #e0f2fe !important;
-            margin: 6px 0 0 0 !important;
-            font-size: 0.9rem !important;
-        }
-
-        [data-testid="stMetric"] {
-            background: #ffffff;
-            border: 1px solid #dbeafe;
-            border-top: 4px solid #2563eb;
-            border-radius: 14px;
-            padding: 12px 14px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-        }
-
-        [data-testid="stMetricLabel"] > div {
-            font-size: 0.82rem !important;
-            font-weight: 700 !important;
-            color: #334155 !important;
-        }
-
-        [data-testid="stMetricValue"] > div {
-            font-size: 1.3rem !important;
-            font-weight: 800 !important;
-            color: #0f172a !important;
-        }
-
-        .sku-card {
-            border-radius: 14px;
-            padding: 16px 18px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
-            color: #0f172a;
-        }
-
-        .sku-pen {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 5px solid #2563eb;
-        }
-
-        .sku-stat {
-            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-            border-left: 5px solid #7c3aed;
-        }
-
-        .sku-khata {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border-left: 5px solid #059669;
-        }
-
-        .session-half {
-            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-            border-left: 5px solid #d97706;
-        }
-
-        .session-full {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-left: 5px solid #0284c7;
-        }
-
-        .sku-title {
-            font-size: 1.05rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-
-        .sku-line {
-            font-size: 0.9rem;
-            margin: 4px 0;
-            line-height: 1.45;
-        }
-
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .stTabs [data-baseweb="tab"] {
-            border-radius: 10px;
-            padding: 8px 16px;
-            font-weight: 700;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-        }
-
-        .stTabs [aria-selected="true"] {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
-            color: #ffffff !important;
-            border-color: #1d4ed8 !important;
-        }
-
-        .stButton > button, .stFormSubmitButton > button {
-            border-radius: 10px;
-            font-weight: 700;
-            width: 100%;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
-            border: none;
-            padding: 0.55rem 1rem;
-        }
-
-        [data-testid="stDataFrame"] {
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #cbd5e1;
-        }
-
-        @media (max-width: 768px) {
-            .block-container {
-                padding-top: 0.85rem;
-                padding-bottom: 2rem;
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-            }
-
-            .hero-box {
-                padding: 14px 16px;
-                border-radius: 12px;
-            }
-
-            .hero-box h1 {
-                font-size: 1.35rem !important;
-            }
-
-            .hero-box p {
-                font-size: 0.8rem !important;
-            }
-
-            [data-testid="stMetric"] {
-                padding: 10px 10px;
-                border-radius: 10px;
-                margin-bottom: 6px;
-            }
-
-            [data-testid="stMetricLabel"] > div {
-                font-size: 0.74rem !important;
-            }
-
-            [data-testid="stMetricValue"] > div {
-                font-size: 1.05rem !important;
-            }
-
-            .stTabs [data-baseweb="tab"] {
-                padding: 6px 10px;
-                font-size: 0.8rem !important;
-                flex: 1 1 46%;
-                text-align: center;
-            }
-
-            .sku-card {
-                padding: 12px 14px;
-            }
-
-            [data-testid="stDataFrame"] {
-                font-size: 0.78rem !important;
-            }
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 SPREADSHEET_NAME = "TSM_Sales_Database"
 SALES_SHEET = "Sales_Data"
 CONFIG_SHEET = "SR_Config"
@@ -303,6 +108,23 @@ def connect_sheets():
     return sales_ws, cfg_ws
 
 
+def write_config_all(cfg_ws, df_c):
+    cfg_ws.clear()
+    cfg_ws.append_row(CONFIG_COLS)
+    for i in range(6):
+        r = df_c.iloc[i]
+        cfg_ws.append_row([
+            f"SR-{i+1}",
+            str(r["SR_Name"]).strip() or f"SR {i+1}",
+            safe_int(r["Working_Days"], DEFAULT_DAYS, 1),
+            float(r["Pen_Monthly_Pcs"]),
+            float(r["Pen_Rate"]),
+            float(r["Stationery_Monthly_Pcs"]),
+            float(r["Stationery_Rate"]),
+            float(r["Khata_Monthly_Ton"]),
+        ])
+
+
 def read_config(cfg_ws):
     vals = cfg_ws.get_all_values()
     if len(vals) <= 1:
@@ -342,7 +164,6 @@ def read_sales(sales_ws):
     for col in ["Qty", "Rate", "Total_BDT", "Delivery_BDT", "Khata_Ton", "Delivery_Khata_Ton"]:
         df_s[col] = df_s[col].apply(safe_num)
 
-    # If Delivery_BDT was blank on older rows, fallback to Total_BDT
     raw_deliv = pd.Series(rows, columns=SALES_COLS)["Delivery_BDT"].astype(str).str.strip()
     df_s.loc[raw_deliv == "", "Delivery_BDT"] = df_s.loc[raw_deliv == "", "Total_BDT"]
 
@@ -355,32 +176,22 @@ def read_sales(sales_ws):
 
 
 def effective_sr_day_rows(df_sr_day):
-    """For a single SR on a single date, use Full Summary if present; otherwise Half Summary."""
+    """If Full Summary exists for an SR on a date, use Full Summary; otherwise Half Summary."""
     if df_sr_day.empty:
         return df_sr_day
     full_rows = df_sr_day[df_sr_day["Session"] == "Full Summary"]
-    if not full_rows.empty:
-        return full_rows
-    return df_sr_day
+    return full_rows if not full_rows.empty else df_sr_day
 
 
 def effective_period_rows(df_period, sr_name):
-    """Aggregate daily effective rows (Full Summary prioritized per SR per day) across a period."""
     if df_period.empty:
         return pd.DataFrame(columns=SALES_COLS)
     sub = df_period[df_period["SR_Name"] == sr_name]
     if sub.empty:
         return pd.DataFrame(columns=SALES_COLS)
-
-    chunks = []
-    for _, day_grp in sub.groupby("Date", sort=False):
-        chunks.append(effective_sr_day_rows(day_grp))
+    chunks = [effective_sr_day_rows(day_grp) for _, day_grp in sub.groupby("Date", sort=False)]
     return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame(columns=SALES_COLS)
 
-
-for stale_key in list(st.session_state.keys()):
-    if stale_key.startswith(("dy_", "nm_", "pm_", "pr_", "sm_", "sr_", "km_", "c_dy_")):
-        del st.session_state[stale_key]
 
 try:
     sales_ws, cfg_ws = connect_sheets()
@@ -392,11 +203,9 @@ except Exception as err:
 
 sr_names = cfg_df["SR_Name"].tolist()
 
-# --- Mode Selector (No PIN Required) ---
-st.sidebar.header("Portal Mode")
-role_mode = st.sidebar.radio("Select Mode", ["SR Self-Entry & My Report", "TSM Manager View"])
-
-rep_date = st.date_input("Report Date", value=date.today())
+st.sidebar.title("Navigation")
+view_mode = st.sidebar.radio("Choose View", ["SR Self-Entry & My Report", "TSM All SRs & Total"])
+rep_date = st.sidebar.date_input("Report Date", value=date.today())
 rep_date_str = str(rep_date)
 wk_start = rep_date - timedelta(days=6)
 mo_prefix = rep_date_str[:7]
@@ -412,578 +221,255 @@ else:
 
 
 def build_report(c_df, d_df, w_df, m_df):
-    out = []
-    for _, row in c_df.iterrows():
-        sr = row["SR_Name"]
-        days = safe_int(row["Working_Days"], DEFAULT_DAYS, 1)
+    rows = []
+    for _, r in c_df.iterrows():
+        sr = r["SR_Name"]
+        days = safe_int(r["Working_Days"], DEFAULT_DAYS, 1)
 
-        pen_mt = float(row["Pen_Monthly_Pcs"])
-        pen_rt = float(row["Pen_Rate"])
-        stat_mt = float(row["Stationery_Monthly_Pcs"])
-        stat_rt = float(row["Stationery_Rate"])
-        khata_mt_ton = float(row["Khata_Monthly_Ton"])
-        khata_mt_bdt = khata_mt_ton * KHATA_RATE_PER_TON
+        pen_mt = float(r["Pen_Monthly_Pcs"])
+        pen_rt = float(r["Pen_Rate"])
+        stat_mt = float(r["Stationery_Monthly_Pcs"])
+        stat_rt = float(r["Stationery_Rate"])
+        kh_mt_ton = float(r["Khata_Monthly_Ton"])
+        kh_mt_bdt = kh_mt_ton * KHATA_RATE_PER_TON
 
-        tot_mt_bdt = (pen_mt * pen_rt) + (stat_mt * stat_rt) + khata_mt_bdt
-        tot_dt_bdt = tot_mt_bdt / days
-
-        pen_dt = pen_mt / days
-        stat_dt = stat_mt / days
-        khata_dt_ton = khata_mt_ton / days
+        m_target = (pen_mt * pen_rt) + (stat_mt * stat_rt) + kh_mt_bdt
+        d_target = m_target / days
 
         raw_sd = d_df[d_df["SR_Name"] == sr] if not d_df.empty else pd.DataFrame(columns=SALES_COLS)
-        sh = raw_sd[raw_sd["Session"] == "Half Summary"]
-        sf = raw_sd[raw_sd["Session"] == "Full Summary"]
-
         sd = effective_sr_day_rows(raw_sd)
-        d_pen_pcs = sd[sd["SKU"] == "Pen"]["Qty"].sum() if not sd.empty else 0.0
-        d_pen_bdt = sd[sd["SKU"] == "Pen"]["Total_BDT"].sum() if not sd.empty else 0.0
-        d_stat_pcs = sd[sd["SKU"] == "Stationery"]["Qty"].sum() if not sd.empty else 0.0
-        d_stat_bdt = sd[sd["SKU"] == "Stationery"]["Total_BDT"].sum() if not sd.empty else 0.0
-        d_kh_ton = sd[sd["SKU"] == "Khata"]["Khata_Ton"].sum() if not sd.empty else 0.0
-        d_kh_bdt = sd[sd["SKU"] == "Khata"]["Total_BDT"].sum() if not sd.empty else 0.0
-        d_tot_bdt = sd["Total_BDT"].sum() if not sd.empty else 0.0
-        d_deliv_bdt = sd["Delivery_BDT"].sum() if not sd.empty else 0.0
-        d_deliv_kh_ton = sd[sd["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sd.empty else 0.0
-        d_memo = int(sd["Memo"].sum()) if not sd.empty else 0
-
-        d_short_bdt = max(0.0, tot_dt_bdt - d_tot_bdt)
-        d_short_pen = max(0.0, pen_dt - d_pen_pcs)
-        d_short_stat = max(0.0, stat_dt - d_stat_pcs)
-        d_short_kh_ton = max(0.0, khata_dt_ton - d_kh_ton)
-
         sw = effective_period_rows(w_df, sr)
-        w_pen_pcs = sw[sw["SKU"] == "Pen"]["Qty"].sum() if not sw.empty else 0.0
-        w_stat_pcs = sw[sw["SKU"] == "Stationery"]["Qty"].sum() if not sw.empty else 0.0
-        w_kh_ton = sw[sw["SKU"] == "Khata"]["Khata_Ton"].sum() if not sw.empty else 0.0
-        w_tot_bdt = sw["Total_BDT"].sum() if not sw.empty else 0.0
-        w_deliv_bdt = sw["Delivery_BDT"].sum() if not sw.empty else 0.0
-        w_deliv_kh_ton = sw[sw["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sw.empty else 0.0
-        w_memo = int(sw["Memo"].sum()) if not sw.empty else 0
-        w_short_bdt = max(0.0, (tot_dt_bdt * 7) - w_tot_bdt)
-
         sm = effective_period_rows(m_df, sr)
-        m_pen_pcs = sm[sm["SKU"] == "Pen"]["Qty"].sum() if not sm.empty else 0.0
-        m_pen_bdt = sm[sm["SKU"] == "Pen"]["Total_BDT"].sum() if not sm.empty else 0.0
-        m_stat_pcs = sm[sm["SKU"] == "Stationery"]["Qty"].sum() if not sm.empty else 0.0
-        m_stat_bdt = sm[sm["SKU"] == "Stationery"]["Total_BDT"].sum() if not sm.empty else 0.0
-        m_kh_ton = sm[sm["SKU"] == "Khata"]["Khata_Ton"].sum() if not sm.empty else 0.0
-        m_kh_bdt = sm[sm["SKU"] == "Khata"]["Total_BDT"].sum() if not sm.empty else 0.0
-        m_tot_bdt = sm["Total_BDT"].sum() if not sm.empty else 0.0
-        m_deliv_bdt = sm["Delivery_BDT"].sum() if not sm.empty else 0.0
-        m_deliv_kh_ton = sm[sm["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sm.empty else 0.0
+
+        d_sales = sd["Total_BDT"].sum() if not sd.empty else 0.0
+        d_deliv = sd["Delivery_BDT"].sum() if not sd.empty else 0.0
+        d_memo = int(sd["Memo"].sum()) if not sd.empty else 0
+        d_short = max(0.0, d_target - d_sales)
+
+        w_sales = sw["Total_BDT"].sum() if not sw.empty else 0.0
+        w_deliv = sw["Delivery_BDT"].sum() if not sw.empty else 0.0
+        w_memo = int(sw["Memo"].sum()) if not sw.empty else 0
+
+        m_sales = sm["Total_BDT"].sum() if not sm.empty else 0.0
+        m_deliv = sm["Delivery_BDT"].sum() if not sm.empty else 0.0
         m_memo = int(sm["Memo"].sum()) if not sm.empty else 0
+        m_short = max(0.0, m_target - m_sales)
+        ach_pct = (m_sales / m_target * 100.0) if m_target > 0 else 0.0
 
-        m_short_bdt = max(0.0, tot_mt_bdt - m_tot_bdt)
-        m_short_pen = max(0.0, pen_mt - m_pen_pcs)
-        m_short_stat = max(0.0, stat_mt - m_stat_pcs)
-        m_short_kh_ton = max(0.0, khata_mt_ton - m_kh_ton)
-
-        ach_pct = (m_tot_bdt / tot_mt_bdt * 100.0) if tot_mt_bdt > 0 else 0.0
-        short_pct = max(0.0, 100.0 - ach_pct) if tot_mt_bdt > 0 else 0.0
-
-        out.append({
+        rows.append({
             "SR_Name": sr,
             "Days": days,
-            "Half_BDT": sh["Total_BDT"].sum(),
-            "Half_Delivery_BDT": sh["Delivery_BDT"].sum(),
-            "Half_Memo": int(sh["Memo"].sum()),
-            "Half_Pen_Pcs": sh[sh["SKU"] == "Pen"]["Qty"].sum(),
-            "Half_Stat_Pcs": sh[sh["SKU"] == "Stationery"]["Qty"].sum(),
-            "Half_Khata_BDT": sh[sh["SKU"] == "Khata"]["Total_BDT"].sum(),
-            "Full_BDT": sf["Total_BDT"].sum(),
-            "Full_Delivery_BDT": sf["Delivery_BDT"].sum(),
-            "Full_Memo": int(sf["Memo"].sum()),
-            "Full_Pen_Pcs": sf[sf["SKU"] == "Pen"]["Qty"].sum(),
-            "Full_Stat_Pcs": sf[sf["SKU"] == "Stationery"]["Qty"].sum(),
-            "Full_Khata_BDT": sf[sf["SKU"] == "Khata"]["Total_BDT"].sum(),
-            "Day_Target_BDT": tot_dt_bdt,
-            "Day_Sales_BDT": d_tot_bdt,
-            "Day_Delivery_BDT": d_deliv_bdt,
-            "Day_Delivery_Khata_Ton": d_deliv_kh_ton,
-            "Day_Short_BDT": d_short_bdt,
+            "Day_Target": d_target,
+            "Day_Sales": d_sales,
+            "Day_Delivery": d_deliv,
+            "Day_Shortfall": d_short,
             "Day_Memo": d_memo,
-            "Day_Pen_Pcs": d_pen_pcs,
-            "Day_Pen_BDT": d_pen_bdt,
-            "Day_Short_Pen": d_short_pen,
-            "Day_Stat_Pcs": d_stat_pcs,
-            "Day_Stat_BDT": d_stat_bdt,
-            "Day_Short_Stat": d_short_stat,
-            "Day_Khata_Ton": d_kh_ton,
-            "Day_Khata_BDT": d_kh_bdt,
-            "Day_Short_Khata_Ton": d_short_kh_ton,
-            "Week_Sales_BDT": w_tot_bdt,
-            "Week_Delivery_BDT": w_deliv_bdt,
-            "Week_Delivery_Khata_Ton": w_deliv_kh_ton,
-            "Week_Short_BDT": w_short_bdt,
-            "Week_Pen_Pcs": w_pen_pcs,
-            "Week_Stat_Pcs": w_stat_pcs,
-            "Week_Khata_Ton": w_kh_ton,
+            "Week_Sales": w_sales,
+            "Week_Delivery": w_deliv,
             "Week_Memo": w_memo,
-            "Month_Target_BDT": tot_mt_bdt,
-            "Month_Sales_BDT": m_tot_bdt,
-            "Month_Delivery_BDT": m_deliv_bdt,
-            "Month_Delivery_Khata_Ton": m_deliv_kh_ton,
-            "Month_Short_BDT": m_short_bdt,
+            "Month_Target": m_target,
+            "Month_Sales": m_sales,
+            "Month_Delivery": m_deliv,
+            "Month_Shortfall": m_short,
             "Ach_%": ach_pct,
-            "Short_%": short_pct,
-            "Month_Pen_Target": pen_mt,
-            "Month_Pen_Pcs": m_pen_pcs,
-            "Month_Pen_BDT": m_pen_bdt,
-            "Month_Short_Pen": m_short_pen,
-            "Month_Stat_Target": stat_mt,
-            "Month_Stat_Pcs": m_stat_pcs,
-            "Month_Stat_BDT": m_stat_bdt,
-            "Month_Short_Stat": m_short_stat,
-            "Month_Khata_Target_Ton": khata_mt_ton,
-            "Month_Khata_Ton": m_kh_ton,
-            "Month_Khata_BDT": m_kh_bdt,
-            "Month_Short_Khata_Ton": m_short_kh_ton,
             "Month_Memo": m_memo,
+            "Pen_Monthly_Pcs": pen_mt,
+            "Pen_Rate": pen_rt,
+            "Stationery_Monthly_Pcs": stat_mt,
+            "Stationery_Rate": stat_rt,
+            "Khata_Monthly_Ton": kh_mt_ton,
+            "Month_Pen_Pcs": sm[sm["SKU"] == "Pen"]["Qty"].sum() if not sm.empty else 0.0,
+            "Month_Stat_Pcs": sm[sm["SKU"] == "Stationery"]["Qty"].sum() if not sm.empty else 0.0,
+            "Month_Khata_Ton": sm[sm["SKU"] == "Khata"]["Khata_Ton"].sum() if not sm.empty else 0.0,
+            "Month_Deliv_Khata_Ton": sm[sm["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sm.empty else 0.0,
         })
-    return pd.DataFrame(out)
+    return pd.DataFrame(rows)
 
 
 rep_df = build_report(cfg_df, d_sub, w_sub, m_sub)
 
 
-def render_entry_form(prefix, sr_names, cfg_df, sales_ws, is_sidebar=True):
-    container = st.sidebar if is_sidebar else st
-    container.subheader("New Sales & Delivery Entry")
-    sku_val = container.selectbox("Select SKU", ["Pen", "Stationery", "Khata"], key=f"{prefix}_sku")
+def show_entry_form(prefix, sr_name, cfg_row, sales_ws):
+    sku = st.selectbox("Select SKU", ["Pen", "Stationery", "Khata"], key=f"{prefix}_sku")
+    with st.form(f"{prefix}_form", clear_on_submit=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            e_date = st.date_input("Date", value=date.today(), key=f"{prefix}_date")
+        with c2:
+            e_ses = st.selectbox("Session", ["Half Summary", "Full Summary"], key=f"{prefix}_ses")
 
-    with container.form(f"{prefix}_form", clear_on_submit=True):
-        e_date = st.date_input("Date", value=date.today(), key=f"{prefix}_date")
-        e_session = st.selectbox("Session", ["Half Summary", "Full Summary"], key=f"{prefix}_ses")
-        e_sr = st.selectbox("SR Name", sr_names, key=f"{prefix}_sr")
-        sr_info = cfg_df[cfg_df["SR_Name"] == e_sr].iloc[0]
-
-        if sku_val == "Pen":
-            q_val = st.number_input("Pen Quantity (Pcs)", min_value=0.0, step=10.0, format="%.0f", key=f"{prefix}_p_q")
-            r_val = st.number_input("Pen Unit Rate (BDT)", min_value=0.0, value=float(sr_info["Pen_Rate"]), step=1.0, format="%.2f", key=f"{prefix}_p_r")
-            tot_bdt = float(q_val) * float(r_val)
-            deliv_bdt = st.number_input("Delivered Amount (BDT)", min_value=0.0, value=float(tot_bdt), step=100.0, format="%.2f", key=f"{prefix}_p_del")
-            k_ton = 0.0
+        if sku == "Pen":
+            qty = st.number_input("Pen Quantity (Pcs)", min_value=0.0, step=10.0, format="%.0f", key=f"{prefix}_pq")
+            rate = st.number_input("Pen Rate (BDT)", min_value=0.0, value=float(cfg_row["Pen_Rate"]), step=1.0, format="%.2f", key=f"{prefix}_pr")
+            total_bdt = float(qty) * float(rate)
+            deliv_bdt = st.number_input("Delivered Amount (BDT)", min_value=0.0, value=float(total_bdt), step=100.0, format="%.2f", key=f"{prefix}_pd")
+            kh_ton = 0.0
             deliv_ton = 0.0
-            unit_str = "Pcs"
-            st.caption(f"Order Total: **BDT {tot_bdt:,.0f}** | Delivery: **BDT {deliv_bdt:,.0f}**")
-        elif sku_val == "Stationery":
-            q_val = st.number_input("Stationery Quantity (Pcs)", min_value=0.0, step=10.0, format="%.0f", key=f"{prefix}_s_q")
-            r_val = st.number_input("Stationery Unit Rate (BDT)", min_value=0.0, value=float(sr_info["Stationery_Rate"]), step=1.0, format="%.2f", key=f"{prefix}_s_r")
-            tot_bdt = float(q_val) * float(r_val)
-            deliv_bdt = st.number_input("Delivered Amount (BDT)", min_value=0.0, value=float(tot_bdt), step=100.0, format="%.2f", key=f"{prefix}_s_del")
-            k_ton = 0.0
+            unit = "Pcs"
+        elif sku == "Stationery":
+            qty = st.number_input("Stationery Quantity (Pcs)", min_value=0.0, step=10.0, format="%.0f", key=f"{prefix}_sq")
+            rate = st.number_input("Stationery Rate (BDT)", min_value=0.0, value=float(cfg_row["Stationery_Rate"]), step=1.0, format="%.2f", key=f"{prefix}_sr")
+            total_bdt = float(qty) * float(rate)
+            deliv_bdt = st.number_input("Delivered Amount (BDT)", min_value=0.0, value=float(total_bdt), step=100.0, format="%.2f", key=f"{prefix}_sd")
+            kh_ton = 0.0
             deliv_ton = 0.0
-            unit_str = "Pcs"
-            st.caption(f"Order Total: **BDT {tot_bdt:,.0f}** | Delivery: **BDT {deliv_bdt:,.0f}**")
+            unit = "Pcs"
         else:
-            k_ton = st.number_input("Khata Order Quantity (Ton)", min_value=0.0, step=0.25, format="%.2f", key=f"{prefix}_k_t")
-            deliv_ton = st.number_input("Delivered Khata (Ton)", min_value=0.0, value=float(k_ton), step=0.25, format="%.2f", key=f"{prefix}_k_del_t")
-            r_val = KHATA_RATE_PER_TON
-            tot_bdt = float(k_ton) * KHATA_RATE_PER_TON
+            kh_ton = st.number_input("Khata Order (Ton)", min_value=0.0, step=0.25, format="%.2f", key=f"{prefix}_kt")
+            deliv_ton = st.number_input("Khata Delivery (Ton)", min_value=0.0, value=float(kh_ton), step=0.25, format="%.2f", key=f"{prefix}_kdt")
+            rate = KHATA_RATE_PER_TON
+            total_bdt = float(kh_ton) * KHATA_RATE_PER_TON
             deliv_bdt = float(deliv_ton) * KHATA_RATE_PER_TON
-            q_val = float(k_ton)
-            unit_str = "Ton"
-            st.caption(f"Order: **BDT {tot_bdt:,.0f}** | Delivery: **{deliv_ton:,.2f} Ton (BDT {deliv_bdt:,.0f})**")
+            qty = float(kh_ton)
+            unit = "Ton"
 
-        m_val = st.number_input("Memos", min_value=0, step=1, format="%d", key=f"{prefix}_memo")
-        n_val = st.text_input("Market / Area Note (Optional)", key=f"{prefix}_note")
-        save_btn = st.form_submit_button("Save to Google Sheet")
+        c3, c4 = st.columns(2)
+        with c3:
+            memo = st.number_input("Memos", min_value=0, step=1, format="%d", key=f"{prefix}_memo")
+        with c4:
+            note = st.text_input("Area / Note", key=f"{prefix}_note")
 
-        if save_btn:
-            if q_val <= 0 and tot_bdt <= 0 and deliv_bdt <= 0:
-                st.warning("Quantity or amount must be greater than 0.")
+        if st.form_submit_button("Submit Entry"):
+            if qty <= 0 and total_bdt <= 0 and deliv_bdt <= 0:
+                st.warning("Enter quantity or amount greater than 0.")
             else:
                 sales_ws.append_row([
                     str(e_date),
-                    e_session,
-                    e_sr,
-                    sku_val,
-                    round(float(q_val), 4),
-                    unit_str,
-                    round(float(r_val), 2),
-                    round(float(tot_bdt), 2),
+                    e_ses,
+                    sr_name,
+                    sku,
+                    round(float(qty), 4),
+                    unit,
+                    round(float(rate), 2),
+                    round(float(total_bdt), 2),
                     round(float(deliv_bdt), 2),
-                    round(float(k_ton), 4),
+                    round(float(kh_ton), 4),
                     round(float(deliv_ton), 4),
-                    int(m_val),
-                    n_val.strip(),
+                    int(memo),
+                    note.strip(),
                 ])
-                st.success("Saved to Google Sheet!")
+                st.success("Saved!")
                 st.rerun()
 
 
 # ==============================================================================
-# MODE 1: SR SELF-ENTRY & MY REPORT (NO PIN)
+# VIEW 1: SR SELF-ENTRY, OWN TARGET & MY REPORT
 # ==============================================================================
-if role_mode == "SR Self-Entry & My Report":
-    st.markdown(
-        """
-        <div class="hero-box">
-            <h1>SR Self-Entry &amp; My Sales &amp; Delivery Report</h1>
-            <p>Submit sales &amp; daily delivery entries and view your Daily, 7-Day &amp; Monthly sales, delivery, target &amp; shortfall</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+if view_mode == "SR Self-Entry & My Report":
+    st.title("SR Self-Entry & My Report")
+    sr_name = st.selectbox("Select SR", sr_names)
+    sr_idx = sr_names.index(sr_name)
+    cfg_row = cfg_df.iloc[sr_idx]
 
-    logged_sr = st.selectbox("Select SR Name", sr_names)
-    render_entry_form("sr_self", sr_names, cfg_df, sales_ws, is_sidebar=False)
+    with st.expander("My Target & Rate Setup", expanded=False):
+        with st.form(f"my_cfg_{sr_idx}"):
+            c1, c2, c3, c4 = st.columns(4)
+            with c1:
+                w_days = st.number_input("Working Days", min_value=1, value=safe_int(cfg_row["Working_Days"], DEFAULT_DAYS, 1), step=1)
+            with c2:
+                p_mt = st.number_input("Pen Monthly (Pcs)", min_value=0.0, value=float(cfg_row["Pen_Monthly_Pcs"]), step=100.0, format="%.0f")
+            with c3:
+                p_rt = st.number_input("Pen Rate (BDT)", min_value=0.0, value=float(cfg_row["Pen_Rate"]), step=1.0, format="%.2f")
+            with c4:
+                k_mt = st.number_input("Khata Monthly (Ton)", min_value=0.0, value=float(cfg_row["Khata_Monthly_Ton"]), step=0.25, format="%.2f")
 
-    me = rep_df[rep_df["SR_Name"] == logged_sr].iloc[0]
-    st.subheader(f"Calculation Summary — {logged_sr} ({rep_date_str})")
+            c5, c6 = st.columns(2)
+            with c5:
+                s_mt = st.number_input("Stationery Monthly (Pcs)", min_value=0.0, value=float(cfg_row["Stationery_Monthly_Pcs"]), step=100.0, format="%.0f")
+            with c6:
+                s_rt = st.number_input("Stationery Rate (BDT)", min_value=0.0, value=float(cfg_row["Stationery_Rate"]), step=1.0, format="%.2f")
 
-    m1, m2, m3, m4, m5 = st.columns(5)
-    m1.metric("Daily Target", f"BDT {me['Day_Target_BDT']:,.0f}")
-    m2.metric("Daily Sales", f"BDT {me['Day_Sales_BDT']:,.0f}", f"Memo: {int(me['Day_Memo'])}")
-    m3.metric("Daily Delivery", f"BDT {me['Day_Delivery_BDT']:,.0f}")
-    m4.metric("Daily Shortfall", f"BDT {me['Day_Short_BDT']:,.0f}")
-    m5.metric("7-Day Sales / Deliv", f"BDT {me['Week_Sales_BDT']:,.0f}", f"Deliv: BDT {me['Week_Delivery_BDT']:,.0f}")
+            if st.form_submit_button("Save My Target"):
+                new_cfg = cfg_df.copy()
+                new_cfg.loc[sr_idx, "Working_Days"] = safe_int(w_days, DEFAULT_DAYS, 1)
+                new_cfg.loc[sr_idx, "Pen_Monthly_Pcs"] = float(p_mt)
+                new_cfg.loc[sr_idx, "Pen_Rate"] = float(p_rt)
+                new_cfg.loc[sr_idx, "Stationery_Monthly_Pcs"] = float(s_mt)
+                new_cfg.loc[sr_idx, "Stationery_Rate"] = float(s_rt)
+                new_cfg.loc[sr_idx, "Khata_Monthly_Ton"] = float(k_mt)
+                write_config_all(cfg_ws, new_cfg)
+                st.success("Target saved!")
+                st.rerun()
 
-    m6, m7, m8, m9, m10 = st.columns(5)
-    m6.metric("Monthly Target", f"BDT {me['Month_Target_BDT']:,.0f}")
-    m7.metric("Monthly Sales", f"BDT {me['Month_Sales_BDT']:,.0f}", f"Memo: {int(me['Month_Memo'])}")
-    m8.metric("Monthly Delivery", f"BDT {me['Month_Delivery_BDT']:,.0f}")
-    m9.metric("Achievement %", f"{me['Ach_%']:.1f}%", f"Short: {me['Short_%']:.1f}%")
-    m10.metric("Khata (Today / Month)", f"{me['Day_Delivery_Khata_Ton']:,.2f} T", f"Month: {me['Month_Delivery_Khata_Ton']:,.2f} T")
+    st.subheader("Daily Sales & Delivery Entry")
+    show_entry_form("sr_tab", sr_name, cfg_row, sales_ws)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    s_b1, s_b2, s_b3 = st.columns(3)
-    with s_b1:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-pen">
-                <div class="sku-title">{logged_sr} — Pen (Pcs &amp; BDT)</div>
-                <div class="sku-line">• Today: <b>{me['Day_Pen_Pcs']:,.0f} Pcs</b> (BDT {me['Day_Pen_BDT']:,.0f}) | Shortfall: <b>{me['Day_Short_Pen']:,.0f}</b></div>
-                <div class="sku-line">• 7 Days: <b>{me['Week_Pen_Pcs']:,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{me['Month_Pen_Pcs']:,.0f} / {me['Month_Pen_Target']:,.0f} Pcs</b> (BDT {me['Month_Pen_BDT']:,.0f}) | Shortfall: <b>{me['Month_Short_Pen']:,.0f}</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with s_b2:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-stat">
-                <div class="sku-title">{logged_sr} — Stationery (Pcs &amp; BDT)</div>
-                <div class="sku-line">• Today: <b>{me['Day_Stat_Pcs']:,.0f} Pcs</b> (BDT {me['Day_Stat_BDT']:,.0f}) | Shortfall: <b>{me['Day_Short_Stat']:,.0f}</b></div>
-                <div class="sku-line">• 7 Days: <b>{me['Week_Stat_Pcs']:,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{me['Month_Stat_Pcs']:,.0f} / {me['Month_Stat_Target']:,.0f} Pcs</b> (BDT {me['Month_Stat_BDT']:,.0f}) | Shortfall: <b>{me['Month_Short_Stat']:,.0f}</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with s_b3:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-khata">
-                <div class="sku-title">{logged_sr} — Khata (Ton @ 200,000 BDT)</div>
-                <div class="sku-line">• Today Order: <b>{me['Day_Khata_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Day_Delivery_Khata_Ton']:,.2f} Ton</b></div>
-                <div class="sku-line">• 7 Days Order: <b>{me['Week_Khata_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Week_Delivery_Khata_Ton']:,.2f} Ton</b></div>
-                <div class="sku-line">• Monthly Order: <b>{me['Month_Khata_Ton']:,.2f} / {me['Month_Khata_Target_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Month_Delivery_Khata_Ton']:,.2f} Ton</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+    me = rep_df[rep_df["SR_Name"] == sr_name].iloc[0]
+    st.subheader(f"My Summary ({rep_date_str})")
 
-    st.subheader(f"Submitted Entries — {logged_sr}")
-    my_logs = sales_df[sales_df["SR_Name"] == logged_sr] if not sales_df.empty else pd.DataFrame(columns=SALES_COLS)
-    if my_logs.empty:
-        st.info("No entries found for this SR yet.")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Day Target", f"BDT {me['Day_Target']:,.0f}")
+    m2.metric("Day Sales", f"BDT {me['Day_Sales']:,.0f}", f"Memo: {int(me['Day_Memo'])}")
+    m3.metric("Day Delivery", f"BDT {me['Day_Delivery']:,.0f}")
+    m4.metric("Day Shortfall", f"BDT {me['Day_Shortfall']:,.0f}")
+
+    m5, m6, m7, m8 = st.columns(4)
+    m5.metric("Month Target", f"BDT {me['Month_Target']:,.0f}")
+    m6.metric("Month Sales", f"BDT {me['Month_Sales']:,.0f}", f"Memo: {int(me['Month_Memo'])}")
+    m7.metric("Month Delivery", f"BDT {me['Month_Delivery']:,.0f}")
+    m8.metric("Achievement %", f"{me['Ach_%']:.1f}%")
+
+    st.subheader("My Submitted Entries")
+    my_df = sales_df[sales_df["SR_Name"] == sr_name] if not sales_df.empty else pd.DataFrame(columns=SALES_COLS)
+    if my_df.empty:
+        st.info("No entries yet.")
     else:
-        st.dataframe(my_logs.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
+        st.dataframe(my_df.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
+
 
 # ==============================================================================
-# MODE 2: TSM MANAGER VIEW (NO PIN — ALL SRs + GRAND TOTAL + ENTRY + SETUP)
+# VIEW 2: TSM ALL SRs & TOTAL
 # ==============================================================================
 else:
-    st.markdown(
-        """
-        <div class="hero-box">
-            <h1>TSM Sales &amp; Delivery Tracker — Manager View</h1>
-            <p>View every SR individually &amp; Grand Total together • Daily, 7-Day &amp; Monthly Sales &amp; Delivery • Full Summary counted as final total</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.title("TSM View — All SRs & Total")
 
-    render_entry_form("tsm_side", sr_names, cfg_df, sales_ws, is_sidebar=True)
-
-    t1, t2, t3, t4, t5 = st.tabs([
-        "Grand Total (All 6 SRs)",
-        "Individual SR View",
-        "Half & Full Summary",
-        "6 SR Setup",
-        "Sales & Delivery Log",
-    ])
-
-    tot_dt = rep_df["Day_Target_BDT"].sum()
-    tot_ds = rep_df["Day_Sales_BDT"].sum()
-    tot_dd = rep_df["Day_Delivery_BDT"].sum()
+    tot_dt = rep_df["Day_Target"].sum()
+    tot_ds = rep_df["Day_Sales"].sum()
+    tot_dd = rep_df["Day_Delivery"].sum()
     tot_dsh = max(0.0, tot_dt - tot_ds)
-    tot_ws = rep_df["Week_Sales_BDT"].sum()
-    tot_wd = rep_df["Week_Delivery_BDT"].sum()
-    tot_wsh = rep_df["Week_Short_BDT"].sum()
-    tot_mt = rep_df["Month_Target_BDT"].sum()
-    tot_ms = rep_df["Month_Sales_BDT"].sum()
-    tot_md = rep_df["Month_Delivery_BDT"].sum()
+
+    tot_mt = rep_df["Month_Target"].sum()
+    tot_ms = rep_df["Month_Sales"].sum()
+    tot_md = rep_df["Month_Delivery"].sum()
     tot_msh = max(0.0, tot_mt - tot_ms)
     tot_ach = (tot_ms / tot_mt * 100.0) if tot_mt > 0 else 0.0
-    tot_shp = max(0.0, 100.0 - tot_ach) if tot_mt > 0 else 0.0
 
-    with t1:
-        st.subheader(f"Grand Total Calculation — All 6 SRs ({rep_date_str})")
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Daily Target", f"BDT {tot_dt:,.0f}")
-        c2.metric("Daily Sales", f"BDT {tot_ds:,.0f}", f"Memo: {int(rep_df['Day_Memo'].sum())}")
-        c3.metric("Daily Delivery", f"BDT {tot_dd:,.0f}")
-        c4.metric("Daily Shortfall", f"BDT {tot_dsh:,.0f}")
-        c5.metric("7-Day Sales / Deliv", f"BDT {tot_ws:,.0f}", f"Deliv: BDT {tot_wd:,.0f}")
+    st.subheader(f"Grand Total — All SRs ({rep_date_str})")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total Day Target", f"BDT {tot_dt:,.0f}")
+    c2.metric("Total Day Sales", f"BDT {tot_ds:,.0f}", f"Memo: {int(rep_df['Day_Memo'].sum())}")
+    c3.metric("Total Day Delivery", f"BDT {tot_dd:,.0f}")
+    c4.metric("Total Day Shortfall", f"BDT {tot_dsh:,.0f}")
 
-        c6, c7, c8, c9, c10 = st.columns(5)
-        c6.metric("Monthly Target", f"BDT {tot_mt:,.0f}")
-        c7.metric("Monthly Sales", f"BDT {tot_ms:,.0f}", f"Memo: {int(rep_df['Month_Memo'].sum())}")
-        c8.metric("Monthly Delivery", f"BDT {tot_md:,.0f}")
-        c9.metric("Achievement %", f"{tot_ach:.1f}%", f"Short: {tot_shp:.1f}%")
-        c10.metric("Khata Deliv (Today / Mo)", f"{rep_df['Day_Delivery_Khata_Ton'].sum():,.2f} T", f"Mo: {rep_df['Month_Delivery_Khata_Ton'].sum():,.2f} T")
+    c5, c6, c7, c8 = st.columns(4)
+    c5.metric("Total Month Target", f"BDT {tot_mt:,.0f}")
+    c6.metric("Total Month Sales", f"BDT {tot_ms:,.0f}", f"Memo: {int(rep_df['Month_Memo'].sum())}")
+    c7.metric("Total Month Delivery", f"BDT {tot_md:,.0f}")
+    c8.metric("Total Achievement %", f"{tot_ach:.1f}%", f"Short: BDT {tot_msh:,.0f}")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        b1, b2, b3 = st.columns(3)
-        with b1:
-            st.markdown(
-                f"""
-                <div class="sku-card sku-pen">
-                    <div class="sku-title">Pen (Pcs &amp; BDT)</div>
-                    <div class="sku-line">• Today: <b>{rep_df['Day_Pen_Pcs'].sum():,.0f} Pcs</b> (BDT {rep_df['Day_Pen_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Day_Short_Pen'].sum():,.0f}</b></div>
-                    <div class="sku-line">• 7 Days: <b>{rep_df['Week_Pen_Pcs'].sum():,.0f} Pcs</b></div>
-                    <div class="sku-line">• Monthly: <b>{rep_df['Month_Pen_Pcs'].sum():,.0f} / {rep_df['Month_Pen_Target'].sum():,.0f} Pcs</b> (BDT {rep_df['Month_Pen_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Month_Short_Pen'].sum():,.0f}</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with b2:
-            st.markdown(
-                f"""
-                <div class="sku-card sku-stat">
-                    <div class="sku-title">Stationery (Pcs &amp; BDT)</div>
-                    <div class="sku-line">• Today: <b>{rep_df['Day_Stat_Pcs'].sum():,.0f} Pcs</b> (BDT {rep_df['Day_Stat_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Day_Short_Stat'].sum():,.0f}</b></div>
-                    <div class="sku-line">• 7 Days: <b>{rep_df['Week_Stat_Pcs'].sum():,.0f} Pcs</b></div>
-                    <div class="sku-line">• Monthly: <b>{rep_df['Month_Stat_Pcs'].sum():,.0f} / {rep_df['Month_Stat_Target'].sum():,.0f} Pcs</b> (BDT {rep_df['Month_Stat_BDT'].sum():,.0f}) | Shortfall: <b>{rep_df['Month_Short_Stat'].sum():,.0f}</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with b3:
-            st.markdown(
-                f"""
-                <div class="sku-card sku-khata">
-                    <div class="sku-title">Khata (Ton @ 200,000 BDT)</div>
-                    <div class="sku-line">• Today Order: <b>{rep_df['Day_Khata_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Day_Delivery_Khata_Ton'].sum():,.2f} Ton</b></div>
-                    <div class="sku-line">• 7 Days Order: <b>{rep_df['Week_Khata_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Week_Delivery_Khata_Ton'].sum():,.2f} Ton</b></div>
-                    <div class="sku-line">• Monthly Order: <b>{rep_df['Month_Khata_Ton'].sum():,.2f} / {rep_df['Month_Khata_Target_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Month_Delivery_Khata_Ton'].sum():,.2f} Ton</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    st.subheader("All SRs Summary")
+    summary_cols = [
+        "SR_Name", "Day_Target", "Day_Sales", "Day_Delivery", "Day_Shortfall", "Day_Memo",
+        "Month_Target", "Month_Sales", "Month_Delivery", "Month_Shortfall", "Ach_%", "Month_Memo",
+    ]
+    grand_row = pd.DataFrame([{
+        "SR_Name": "GRAND TOTAL",
+        "Day_Target": tot_dt,
+        "Day_Sales": tot_ds,
+        "Day_Delivery": tot_dd,
+        "Day_Shortfall": tot_dsh,
+        "Day_Memo": int(rep_df["Day_Memo"].sum()),
+        "Month_Target": tot_mt,
+        "Month_Sales": tot_ms,
+        "Month_Delivery": tot_md,
+        "Month_Shortfall": tot_msh,
+        "Ach_%": tot_ach,
+        "Month_Memo": int(rep_df["Month_Memo"].sum()),
+    }])
+    st.dataframe(pd.concat([rep_df[summary_cols], grand_row[summary_cols]], ignore_index=True), width="stretch", hide_index=True)
 
-        grand_row = pd.DataFrame([{
-            "SR_Name": "GRAND TOTAL (6 SRs)",
-            "Day_Target_BDT": tot_dt,
-            "Day_Sales_BDT": tot_ds,
-            "Day_Delivery_BDT": tot_dd,
-            "Day_Delivery_Khata_Ton": rep_df["Day_Delivery_Khata_Ton"].sum(),
-            "Day_Short_BDT": tot_dsh,
-            "Day_Memo": int(rep_df["Day_Memo"].sum()),
-            "Day_Pen_Pcs": rep_df["Day_Pen_Pcs"].sum(),
-            "Day_Pen_BDT": rep_df["Day_Pen_BDT"].sum(),
-            "Day_Stat_Pcs": rep_df["Day_Stat_Pcs"].sum(),
-            "Day_Stat_BDT": rep_df["Day_Stat_BDT"].sum(),
-            "Day_Khata_Ton": rep_df["Day_Khata_Ton"].sum(),
-            "Day_Khata_BDT": rep_df["Day_Khata_BDT"].sum(),
-            "Week_Sales_BDT": tot_ws,
-            "Week_Delivery_BDT": tot_wd,
-            "Week_Delivery_Khata_Ton": rep_df["Week_Delivery_Khata_Ton"].sum(),
-            "Week_Short_BDT": tot_wsh,
-            "Week_Pen_Pcs": rep_df["Week_Pen_Pcs"].sum(),
-            "Week_Stat_Pcs": rep_df["Week_Stat_Pcs"].sum(),
-            "Week_Khata_Ton": rep_df["Week_Khata_Ton"].sum(),
-            "Week_Memo": int(rep_df["Week_Memo"].sum()),
-            "Month_Target_BDT": tot_mt,
-            "Month_Sales_BDT": tot_ms,
-            "Month_Delivery_BDT": tot_md,
-            "Month_Delivery_Khata_Ton": rep_df["Month_Delivery_Khata_Ton"].sum(),
-            "Month_Short_BDT": tot_msh,
-            "Ach_%": tot_ach,
-            "Short_%": tot_shp,
-            "Month_Pen_Target": rep_df["Month_Pen_Target"].sum(),
-            "Month_Pen_Pcs": rep_df["Month_Pen_Pcs"].sum(),
-            "Month_Pen_BDT": rep_df["Month_Pen_BDT"].sum(),
-            "Month_Short_Pen": rep_df["Month_Short_Pen"].sum(),
-            "Month_Stat_Target": rep_df["Month_Stat_Target"].sum(),
-            "Month_Stat_Pcs": rep_df["Month_Stat_Pcs"].sum(),
-            "Month_Stat_BDT": rep_df["Month_Stat_BDT"].sum(),
-            "Month_Short_Stat": rep_df["Month_Short_Stat"].sum(),
-            "Month_Khata_Target_Ton": rep_df["Month_Khata_Target_Ton"].sum(),
-            "Month_Khata_Ton": rep_df["Month_Khata_Ton"].sum(),
-            "Month_Khata_BDT": rep_df["Month_Khata_BDT"].sum(),
-            "Month_Short_Khata_Ton": rep_df["Month_Short_Khata_Ton"].sum(),
-            "Month_Memo": int(rep_df["Month_Memo"].sum()),
-        }])
-
-        table_cols = [
-            "SR_Name", "Day_Target_BDT", "Day_Sales_BDT", "Day_Delivery_BDT", "Day_Short_BDT", "Day_Memo",
-            "Day_Pen_Pcs", "Day_Pen_BDT", "Day_Stat_Pcs", "Day_Stat_BDT", "Day_Khata_Ton", "Day_Delivery_Khata_Ton", "Day_Khata_BDT",
-            "Week_Sales_BDT", "Week_Delivery_BDT", "Week_Short_BDT", "Week_Pen_Pcs", "Week_Stat_Pcs", "Week_Khata_Ton", "Week_Delivery_Khata_Ton", "Week_Memo",
-            "Month_Target_BDT", "Month_Sales_BDT", "Month_Delivery_BDT", "Month_Short_BDT", "Ach_%", "Short_%",
-            "Month_Pen_Target", "Month_Pen_Pcs", "Month_Pen_BDT", "Month_Short_Pen",
-            "Month_Stat_Target", "Month_Stat_Pcs", "Month_Stat_BDT", "Month_Short_Stat",
-            "Month_Khata_Target_Ton", "Month_Khata_Ton", "Month_Delivery_Khata_Ton", "Month_Khata_BDT", "Month_Short_Khata_Ton",
-            "Month_Memo",
-        ]
-        st.dataframe(pd.concat([rep_df[table_cols], grand_row[table_cols]], ignore_index=True), width="stretch", hide_index=True)
-
-    with t2:
-        st.subheader("Individual SR Calculation View")
-        ind_sr = st.selectbox("Choose SR to Inspect", sr_names, key="ind_sr_pick")
-        ind = rep_df[rep_df["SR_Name"] == ind_sr].iloc[0]
-
-        i1, i2, i3, i4, i5 = st.columns(5)
-        i1.metric("Daily Target", f"BDT {ind['Day_Target_BDT']:,.0f}")
-        i2.metric("Daily Sales", f"BDT {ind['Day_Sales_BDT']:,.0f}", f"Memo: {int(ind['Day_Memo'])}")
-        i3.metric("Daily Delivery", f"BDT {ind['Day_Delivery_BDT']:,.0f}")
-        i4.metric("Daily Shortfall", f"BDT {ind['Day_Short_BDT']:,.0f}")
-        i5.metric("7-Day Sales / Deliv", f"BDT {ind['Week_Sales_BDT']:,.0f}", f"Deliv: BDT {ind['Week_Delivery_BDT']:,.0f}")
-
-        i6, i7, i8, i9, i10 = st.columns(5)
-        i6.metric("Monthly Target", f"BDT {ind['Month_Target_BDT']:,.0f}")
-        i7.metric("Monthly Sales", f"BDT {ind['Month_Sales_BDT']:,.0f}", f"Memo: {int(ind['Month_Memo'])}")
-        i8.metric("Monthly Delivery", f"BDT {ind['Month_Delivery_BDT']:,.0f}")
-        i9.metric("Achievement %", f"{ind['Ach_%']:.1f}%", f"Short: {ind['Short_%']:.1f}%")
-        i10.metric("Khata Deliv (Today / Mo)", f"{ind['Day_Delivery_Khata_Ton']:,.2f} T", f"Mo: {ind['Month_Delivery_Khata_Ton']:,.2f} T")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        k1, k2, k3 = st.columns(3)
-        with k1:
-            st.markdown(
-                f"""
-                <div class="sku-card sku-pen">
-                    <div class="sku-title">{ind_sr} — Pen</div>
-                    <div class="sku-line">• Today: <b>{ind['Day_Pen_Pcs']:,.0f} Pcs</b> (BDT {ind['Day_Pen_BDT']:,.0f}) | Shortfall: <b>{ind['Day_Short_Pen']:,.0f}</b></div>
-                    <div class="sku-line">• 7 Days: <b>{ind['Week_Pen_Pcs']:,.0f} Pcs</b></div>
-                    <div class="sku-line">• Monthly: <b>{ind['Month_Pen_Pcs']:,.0f} / {ind['Month_Pen_Target']:,.0f} Pcs</b> (BDT {ind['Month_Pen_BDT']:,.0f}) | Shortfall: <b>{ind['Month_Short_Pen']:,.0f}</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with k2:
-            st.markdown(
-                f"""
-                <div class="sku-card sku-stat">
-                    <div class="sku-title">{ind_sr} — Stationery</div>
-                    <div class="sku-line">• Today: <b>{ind['Day_Stat_Pcs']:,.0f} Pcs</b> (BDT {ind['Day_Stat_BDT']:,.0f}) | Shortfall: <b>{ind['Day_Short_Stat']:,.0f}</b></div>
-                    <div class="sku-line">• 7 Days: <b>{ind['Week_Stat_Pcs']:,.0f} Pcs</b></div>
-                    <div class="sku-line">• Monthly: <b>{ind['Month_Stat_Pcs']:,.0f} / {ind['Month_Stat_Target']:,.0f} Pcs</b> (BDT {ind['Month_Stat_BDT']:,.0f}) | Shortfall: <b>{ind['Month_Short_Stat']:,.0f}</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with k3:
-            st.markdown(
-                f"""
-                <div class="sku-card sku-khata">
-                    <div class="sku-title">{ind_sr} — Khata</div>
-                    <div class="sku-line">• Today Order: <b>{ind['Day_Khata_Ton']:,.2f} Ton</b> | Delivery: <b>{ind['Day_Delivery_Khata_Ton']:,.2f} Ton</b></div>
-                    <div class="sku-line">• 7 Days Order: <b>{ind['Week_Khata_Ton']:,.2f} Ton</b> | Delivery: <b>{ind['Week_Delivery_Khata_Ton']:,.2f} Ton</b></div>
-                    <div class="sku-line">• Monthly Order: <b>{ind['Month_Khata_Ton']:,.2f} / {ind['Month_Khata_Target_Ton']:,.2f} Ton</b> | Delivery: <b>{ind['Month_Delivery_Khata_Ton']:,.2f} Ton</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-    with t3:
-        st.subheader("Half Summary & Full Summary")
-        pick_sr = st.selectbox("Select SR", sr_names, key="hf_sr_pick")
-        one = rep_df[rep_df["SR_Name"] == pick_sr].iloc[0]
-
-        h_col, f_col = st.columns(2)
-        with h_col:
-            st.markdown(
-                f"""
-                <div class="sku-card session-half">
-                    <div class="sku-title">Half Summary — {pick_sr} ({rep_date_str})</div>
-                    <div class="sku-line">• Sales: <b>BDT {one['Half_BDT']:,.0f}</b> | Delivery: <b>BDT {one['Half_Delivery_BDT']:,.0f}</b> | Memos: <b>{int(one['Half_Memo'])}</b></div>
-                    <div class="sku-line">• Pen: <b>{one['Half_Pen_Pcs']:,.0f} Pcs</b> | Stationery: <b>{one['Half_Stat_Pcs']:,.0f} Pcs</b> | Khata: <b>BDT {one['Half_Khata_BDT']:,.0f}</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with f_col:
-            st.markdown(
-                f"""
-                <div class="sku-card session-full">
-                    <div class="sku-title">Full Summary — {pick_sr} ({rep_date_str})</div>
-                    <div class="sku-line">• Sales: <b>BDT {one['Full_BDT']:,.0f}</b> | Delivery: <b>BDT {one['Full_Delivery_BDT']:,.0f}</b> | Memos: <b>{int(one['Full_Memo'])}</b></div>
-                    <div class="sku-line">• Pen: <b>{one['Full_Pen_Pcs']:,.0f} Pcs</b> | Stationery: <b>{one['Full_Stat_Pcs']:,.0f} Pcs</b> | Khata: <b>BDT {one['Full_Khata_BDT']:,.0f}</b></div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        st.dataframe(
-            rep_df[[
-                "SR_Name",
-                "Half_BDT", "Half_Delivery_BDT", "Half_Memo", "Half_Pen_Pcs", "Half_Stat_Pcs", "Half_Khata_BDT",
-                "Full_BDT", "Full_Delivery_BDT", "Full_Memo", "Full_Pen_Pcs", "Full_Stat_Pcs", "Full_Khata_BDT",
-            ]],
-            width="stretch",
-            hide_index=True,
-        )
-
-    with t4:
-        st.subheader("6 SR Name, Working Days, Rate & Monthly Target Setup")
-        with st.form("clean_cfg_form"):
-            save_rows = []
-            for i in range(6):
-                r = cfg_df.iloc[i]
-                st.markdown(f"**SR #{i+1}**")
-                c1, c2, c3, c4, c5, c6, c7 = st.columns([1.6, 0.8, 1.3, 1.1, 1.3, 1.1, 1.3])
-                with c1:
-                    s_nm = st.text_input("SR Name", value=str(r["SR_Name"]), key=f"clean_nm_{i}")
-                with c2:
-                    s_dy = st.number_input("Working Days", min_value=1, value=safe_int(r["Working_Days"], DEFAULT_DAYS, 1), step=1, key=f"clean_dy_{i}")
-                with c3:
-                    s_pm = st.number_input("Pen Monthly (Pcs)", min_value=0.0, value=float(r["Pen_Monthly_Pcs"]), step=100.0, format="%.0f", key=f"clean_pm_{i}")
-                with c4:
-                    s_pr = st.number_input("Pen Rate (BDT)", min_value=0.0, value=float(r["Pen_Rate"]), step=1.0, format="%.2f", key=f"clean_pr_{i}")
-                with c5:
-                    s_sm = st.number_input("Stationery Monthly (Pcs)", min_value=0.0, value=float(r["Stationery_Monthly_Pcs"]), step=100.0, format="%.0f", key=f"clean_sm_{i}")
-                with c6:
-                    s_sr = st.number_input("Stationery Rate (BDT)", min_value=0.0, value=float(r["Stationery_Rate"]), step=1.0, format="%.2f", key=f"clean_sr_{i}")
-                with c7:
-                    s_km = st.number_input("Khata Monthly (Ton)", min_value=0.0, value=float(r["Khata_Monthly_Ton"]), step=0.25, format="%.2f", key=f"clean_km_{i}")
-
-                save_rows.append([
-                    f"SR-{i+1}",
-                    s_nm.strip() or f"SR {i+1}",
-                    safe_int(s_dy, DEFAULT_DAYS, 1),
-                    float(s_pm),
-                    float(s_pr),
-                    float(s_sm),
-                    float(s_sr),
-                    float(s_km),
-                ])
-
-            if st.form_submit_button("Save Setup"):
-                cfg_ws.clear()
-                cfg_ws.append_row(CONFIG_COLS)
-                for sr_row in save_rows:
-                    cfg_ws.append_row(sr_row)
-                st.success("6 SR setup saved!")
-                st.rerun()
-
-    with t5:
-        st.subheader("Sales & Delivery Log (All 6 SRs)")
-        if sales_df.empty:
-            st.info("No sales or delivery records found yet.")
-        else:
-            st.dataframe(sales_df.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
+    st.subheader("All SR Entries Log")
+    if sales_df.empty:
+        st.info("No entries yet.")
+    else:
+        st.dataframe(sales_df.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
