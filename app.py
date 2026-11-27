@@ -7,6 +7,164 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="TSM Sales Tracker", layout="wide")
 
+# --- Colorful & Mobile Responsive Styling ---
+st.markdown(
+    """
+    <style>
+        .stApp {
+            background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 40%, #f1f5f9 100%);
+        }
+
+        .block-container {
+            padding-top: 1.2rem;
+            padding-bottom: 2.5rem;
+            padding-left: 1.4rem;
+            padding-right: 1.4rem;
+        }
+
+        .hero-box {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #0ea5e9 100%);
+            color: #ffffff;
+            padding: 18px 22px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.16);
+        }
+
+        .hero-box h1 {
+            color: #ffffff !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-size: 1.8rem !important;
+            font-weight: 800 !important;
+        }
+
+        .hero-box p {
+            color: #e0f2fe !important;
+            margin: 6px 0 0 0 !important;
+            font-size: 0.9rem !important;
+        }
+
+        [data-testid="stMetric"] {
+            background: #ffffff;
+            border: 1px solid #dbeafe;
+            border-top: 4px solid #2563eb;
+            border-radius: 14px;
+            padding: 12px 14px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        }
+
+        [data-testid="stMetricLabel"] > div {
+            font-size: 0.82rem !important;
+            font-weight: 700 !important;
+            color: #334155 !important;
+        }
+
+        [data-testid="stMetricValue"] > div {
+            font-size: 1.3rem !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+        }
+
+        .sku-card {
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+            color: #0f172a;
+        }
+
+        .sku-pen {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-left: 5px solid #2563eb;
+        }
+
+        .sku-stat {
+            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+            border-left: 5px solid #7c3aed;
+        }
+
+        .sku-khata {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-left: 5px solid #059669;
+        }
+
+        .sku-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .sku-line {
+            font-size: 0.9rem;
+            margin: 4px 0;
+            line-height: 1.45;
+        }
+
+        .stButton > button, .stFormSubmitButton > button {
+            border-radius: 10px;
+            font-weight: 700;
+            width: 100%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            border: none;
+            padding: 0.55rem 1rem;
+        }
+
+        [data-testid="stDataFrame"] {
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #cbd5e1;
+        }
+
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 0.85rem;
+                padding-bottom: 2rem;
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            .hero-box {
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
+
+            .hero-box h1 {
+                font-size: 1.35rem !important;
+            }
+
+            .hero-box p {
+                font-size: 0.8rem !important;
+            }
+
+            [data-testid="stMetric"] {
+                padding: 10px 10px;
+                border-radius: 10px;
+                margin-bottom: 6px;
+            }
+
+            [data-testid="stMetricLabel"] > div {
+                font-size: 0.74rem !important;
+            }
+
+            [data-testid="stMetricValue"] > div {
+                font-size: 1.05rem !important;
+            }
+
+            .sku-card {
+                padding: 12px 14px;
+            }
+
+            [data-testid="stDataFrame"] {
+                font-size: 0.78rem !important;
+            }
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 SPREADSHEET_NAME = "TSM_Sales_Database"
 SALES_SHEET = "Sales_Data"
 CONFIG_SHEET = "SR_Config"
@@ -176,7 +334,6 @@ def read_sales(sales_ws):
 
 
 def effective_sr_day_rows(df_sr_day):
-    """If Full Summary exists for an SR on a date, use Full Summary; otherwise Half Summary."""
     if df_sr_day.empty:
         return df_sr_day
     full_rows = df_sr_day[df_sr_day["Session"] == "Full Summary"]
@@ -278,6 +435,10 @@ def build_report(c_df, d_df, w_df, m_df):
             "Stationery_Monthly_Pcs": stat_mt,
             "Stationery_Rate": stat_rt,
             "Khata_Monthly_Ton": kh_mt_ton,
+            "Day_Pen_Pcs": sd[sd["SKU"] == "Pen"]["Qty"].sum() if not sd.empty else 0.0,
+            "Day_Stat_Pcs": sd[sd["SKU"] == "Stationery"]["Qty"].sum() if not sd.empty else 0.0,
+            "Day_Khata_Ton": sd[sd["SKU"] == "Khata"]["Khata_Ton"].sum() if not sd.empty else 0.0,
+            "Day_Deliv_Khata_Ton": sd[sd["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sd.empty else 0.0,
             "Month_Pen_Pcs": sm[sm["SKU"] == "Pen"]["Qty"].sum() if not sm.empty else 0.0,
             "Month_Stat_Pcs": sm[sm["SKU"] == "Stationery"]["Qty"].sum() if not sm.empty else 0.0,
             "Month_Khata_Ton": sm[sm["SKU"] == "Khata"]["Khata_Ton"].sum() if not sm.empty else 0.0,
@@ -356,7 +517,16 @@ def show_entry_form(prefix, sr_name, cfg_row, sales_ws):
 # VIEW 1: SR SELF-ENTRY, OWN TARGET & MY REPORT
 # ==============================================================================
 if view_mode == "SR Self-Entry & My Report":
-    st.title("SR Self-Entry & My Report")
+    st.markdown(
+        """
+        <div class="hero-box">
+            <h1>SR Self-Entry &amp; My Sales Report</h1>
+            <p>Set your own target &amp; rates, submit daily sales &amp; delivery entries, and view your full calculation</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     sr_name = st.selectbox("Select SR", sr_names)
     sr_idx = sr_names.index(sr_name)
     cfg_row = cfg_df.iloc[sr_idx]
@@ -409,6 +579,42 @@ if view_mode == "SR Self-Entry & My Report":
     m7.metric("Month Delivery", f"BDT {me['Month_Delivery']:,.0f}")
     m8.metric("Achievement %", f"{me['Ach_%']:.1f}%")
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    b1, b2, b3 = st.columns(3)
+    with b1:
+        st.markdown(
+            f"""
+            <div class="sku-card sku-pen">
+                <div class="sku-title">{sr_name} — Pen</div>
+                <div class="sku-line">• Today: <b>{me['Day_Pen_Pcs']:,.0f} Pcs</b></div>
+                <div class="sku-line">• Monthly: <b>{me['Month_Pen_Pcs']:,.0f} / {me['Pen_Monthly_Pcs']:,.0f} Pcs</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with b2:
+        st.markdown(
+            f"""
+            <div class="sku-card sku-stat">
+                <div class="sku-title">{sr_name} — Stationery</div>
+                <div class="sku-line">• Today: <b>{me['Day_Stat_Pcs']:,.0f} Pcs</b></div>
+                <div class="sku-line">• Monthly: <b>{me['Month_Stat_Pcs']:,.0f} / {me['Stationery_Monthly_Pcs']:,.0f} Pcs</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with b3:
+        st.markdown(
+            f"""
+            <div class="sku-card sku-khata">
+                <div class="sku-title">{sr_name} — Khata</div>
+                <div class="sku-line">• Today Order: <b>{me['Day_Khata_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Day_Deliv_Khata_Ton']:,.2f} Ton</b></div>
+                <div class="sku-line">• Monthly Order: <b>{me['Month_Khata_Ton']:,.2f} / {me['Khata_Monthly_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Month_Deliv_Khata_Ton']:,.2f} Ton</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
     st.subheader("My Submitted Entries")
     my_df = sales_df[sales_df["SR_Name"] == sr_name] if not sales_df.empty else pd.DataFrame(columns=SALES_COLS)
     if my_df.empty:
@@ -421,7 +627,15 @@ if view_mode == "SR Self-Entry & My Report":
 # VIEW 2: TSM ALL SRs & TOTAL
 # ==============================================================================
 else:
-    st.title("TSM View — All SRs & Total")
+    st.markdown(
+        """
+        <div class="hero-box">
+            <h1>TSM Sales &amp; Delivery Tracker — All SRs &amp; Total</h1>
+            <p>View every SR's daily &amp; monthly sales, delivery, target, shortfall &amp; Grand Total</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     tot_dt = rep_df["Day_Target"].sum()
     tot_ds = rep_df["Day_Sales"].sum()
@@ -446,6 +660,42 @@ else:
     c6.metric("Total Month Sales", f"BDT {tot_ms:,.0f}", f"Memo: {int(rep_df['Month_Memo'].sum())}")
     c7.metric("Total Month Delivery", f"BDT {tot_md:,.0f}")
     c8.metric("Total Achievement %", f"{tot_ach:.1f}%", f"Short: BDT {tot_msh:,.0f}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    b1, b2, b3 = st.columns(3)
+    with b1:
+        st.markdown(
+            f"""
+            <div class="sku-card sku-pen">
+                <div class="sku-title">All SRs — Pen</div>
+                <div class="sku-line">• Today: <b>{rep_df['Day_Pen_Pcs'].sum():,.0f} Pcs</b></div>
+                <div class="sku-line">• Monthly: <b>{rep_df['Month_Pen_Pcs'].sum():,.0f} / {rep_df['Pen_Monthly_Pcs'].sum():,.0f} Pcs</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with b2:
+        st.markdown(
+            f"""
+            <div class="sku-card sku-stat">
+                <div class="sku-title">All SRs — Stationery</div>
+                <div class="sku-line">• Today: <b>{rep_df['Day_Stat_Pcs'].sum():,.0f} Pcs</b></div>
+                <div class="sku-line">• Monthly: <b>{rep_df['Month_Stat_Pcs'].sum():,.0f} / {rep_df['Stationery_Monthly_Pcs'].sum():,.0f} Pcs</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with b3:
+        st.markdown(
+            f"""
+            <div class="sku-card sku-khata">
+                <div class="sku-title">All SRs — Khata</div>
+                <div class="sku-line">• Today Order: <b>{rep_df['Day_Khata_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Day_Deliv_Khata_Ton'].sum():,.2f} Ton</b></div>
+                <div class="sku-line">• Monthly Order: <b>{rep_df['Month_Khata_Ton'].sum():,.2f} / {rep_df['Khata_Monthly_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Month_Deliv_Khata_Ton'].sum():,.2f} Ton</b></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.subheader("All SRs Summary")
     summary_cols = [
