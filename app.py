@@ -7,6 +7,110 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="TSM Sales Tracker", layout="wide")
 
+# --- Custom CSS & Mobile Responsive Styling ---
+st.markdown(
+    """
+    <style>
+        .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 2.5rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+
+        [data-testid="stMetric"] {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 14px;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+        }
+
+        [data-testid="stMetricLabel"] > div {
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+        }
+
+        [data-testid="stMetricValue"] > div {
+            font-size: 1.35rem !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+        }
+
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-weight: 600;
+            background-color: #f1f5f9;
+        }
+
+        .stTabs [aria-selected="true"] {
+            background-color: #dbeafe !important;
+            color: #1d4ed8 !important;
+        }
+
+        .stButton > button, .stFormSubmitButton > button {
+            border-radius: 8px;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 1rem;
+                padding-bottom: 2rem;
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            h1 {
+                font-size: 1.5rem !important;
+            }
+
+            h2, .stSubheader, [data-testid="stSubheader"] {
+                font-size: 1.15rem !important;
+            }
+
+            h3 {
+                font-size: 1.05rem !important;
+            }
+
+            [data-testid="stMetric"] {
+                padding: 10px 10px;
+                border-radius: 10px;
+                margin-bottom: 6px;
+            }
+
+            [data-testid="stMetricLabel"] > div {
+                font-size: 0.75rem !important;
+            }
+
+            [data-testid="stMetricValue"] > div {
+                font-size: 1.05rem !important;
+            }
+
+            .stTabs [data-baseweb="tab"] {
+                padding: 6px 10px;
+                font-size: 0.82rem !important;
+                flex: 1 1 45%;
+                text-align: center;
+            }
+
+            [data-testid="stDataFrame"] {
+                font-size: 0.8rem !important;
+            }
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 SPREADSHEET_NAME = "TSM_Sales_Database"
 SALES_SHEET = "Sales_Data"
 CONFIG_SHEET = "SR_Config"
