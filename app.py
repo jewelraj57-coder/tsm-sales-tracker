@@ -1,163 +1,285 @@
 import json
-from datetime import date, timedelta
+from datetime import date
 import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="TSM Sales Tracker", layout="wide")
+st.set_page_config(
+    page_title="SR & TSM Sales Tracker",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-# --- Colorful & Mobile Responsive Styling ---
+KHATA_RATE_PER_TON = 200000.0  # ১ টন = ২,০০,০০০ টাকা
+DEFAULT_DAYS = 26
+
+SPREADSHEET_NAME = "TSM_Sales_Database"
+SALES_SHEET = "Sales_Entries"
+TARGET_SHEET = "SR_Monthly_Targets"
+
+# --- Modern & Mobile Responsive CSS ---
 st.markdown(
     """
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
+        html, body, [class*="css"] {
+            font-family: 'Hind Siliguri', 'Plus Jakarta Sans', sans-serif;
+        }
+
         .stApp {
-            background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 40%, #f1f5f9 100%);
+            background: radial-gradient(circle at top left, #dbeafe 0%, #eff6ff 32%, #f8fafc 70%, #f1f5f9 100%);
+            color: #0f172a;
         }
 
         .block-container {
-            padding-top: 1.2rem;
-            padding-bottom: 2.5rem;
-            padding-left: 1.4rem;
-            padding-right: 1.4rem;
+            max-width: 1280px;
+            padding-top: 1.25rem;
+            padding-bottom: 3rem;
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
         }
 
+        /* Sidebar Styling */
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        [data-testid="stSidebar"] * {
+            color: #f8fafc !important;
+        }
+        [data-testid="stSidebar"] .stRadio > label,
+        [data-testid="stSidebar"] .stDateInput > label {
+            font-weight: 600 !important;
+            color: #cbd5e1 !important;
+        }
+        [data-testid="stSidebar"] input[type="date"] {
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+            border: 1px solid #475569 !important;
+            border-radius: 8px !important;
+        }
+
+        /* Hero Banner */
         .hero-box {
-            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 55%, #0ea5e9 100%);
+            background: linear-gradient(125deg, #0f172a 0%, #1d4ed8 52%, #0284c7 100%);
             color: #ffffff;
-            padding: 18px 22px;
-            border-radius: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.16);
+            padding: 22px 26px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 12px 28px rgba(29, 78, 216, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            position: relative;
+            overflow: hidden;
         }
-
         .hero-box h1 {
             color: #ffffff !important;
             margin: 0 !important;
             padding: 0 !important;
-            font-size: 1.8rem !important;
+            font-size: 1.75rem !important;
             font-weight: 800 !important;
+            letter-spacing: -0.01em;
+            line-height: 1.25 !important;
         }
-
         .hero-box p {
             color: #e0f2fe !important;
-            margin: 6px 0 0 0 !important;
-            font-size: 0.9rem !important;
+            margin: 8px 0 0 0 !important;
+            font-size: 0.96rem !important;
+            line-height: 1.5 !important;
+            opacity: 0.96;
         }
 
+        /* Section Headings */
+        .section-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 18px 0 10px 0;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* Bordered Container Card Enhancement */
+        [data-testid="stVerticalBlockBorderWrapper"] {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 16px !important;
+            padding: 6px 8px;
+            box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+            margin-bottom: 14px;
+        }
+
+        /* KPI Metric Cards */
         [data-testid="stMetric"] {
             background: #ffffff;
-            border: 1px solid #dbeafe;
+            border: 1px solid #e2e8f0;
             border-top: 4px solid #2563eb;
             border-radius: 14px;
-            padding: 12px 14px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+            padding: 14px 16px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
         }
-
+        [data-testid="stMetric"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.1);
+        }
         [data-testid="stMetricLabel"] > div {
-            font-size: 0.82rem !important;
+            font-size: 0.86rem !important;
             font-weight: 700 !important;
-            color: #334155 !important;
+            color: #475569 !important;
         }
-
         [data-testid="stMetricValue"] > div {
-            font-size: 1.3rem !important;
+            font-size: 1.32rem !important;
             font-weight: 800 !important;
             color: #0f172a !important;
         }
+        [data-testid="stMetricDelta"] > div {
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+        }
 
+        /* SKU Cards */
         .sku-card {
-            border-radius: 14px;
-            padding: 16px 18px;
+            border-radius: 16px;
+            padding: 18px 20px;
             margin-bottom: 12px;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
             color: #0f172a;
+            box-shadow: 0 6px 16px rgba(15, 23, 42, 0.05);
+            transition: transform 0.18s ease;
+            height: 100%;
         }
-
+        .sku-card:hover {
+            transform: translateY(-2px);
+        }
         .sku-pen {
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-left: 5px solid #2563eb;
+            background: linear-gradient(145deg, #ffffff 0%, #eff6ff 100%);
+            border: 1px solid #bfdbfe;
+            border-left: 6px solid #2563eb;
         }
-
         .sku-stat {
-            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
-            border-left: 5px solid #7c3aed;
+            background: linear-gradient(145deg, #ffffff 0%, #f5f3ff 100%);
+            border: 1px solid #ddd6fe;
+            border-left: 6px solid #7c3aed;
         }
-
         .sku-khata {
-            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-            border-left: 5px solid #059669;
+            background: linear-gradient(145deg, #ffffff 0%, #ecfdf5 100%);
+            border: 1px solid #a7f3d0;
+            border-left: 6px solid #059669;
         }
-
         .sku-title {
-            font-size: 1.05rem;
             font-weight: 800;
-            margin-bottom: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-
         .sku-line {
-            font-size: 0.9rem;
-            margin: 4px 0;
-            line-height: 1.45;
+            font-size: 0.94rem;
+            line-height: 1.6;
+            color: #1e293b;
+            margin: 3px 0;
         }
 
+        /* Form Inputs & Buttons */
+        .stTextInput input, .stNumberInput input, .stSelectbox div[data-baseweb="select"] > div, .stDateInput input {
+            border-radius: 10px !important;
+            border-color: #cbd5e1 !important;
+            font-size: 0.95rem !important;
+        }
         .stButton > button, .stFormSubmitButton > button {
-            border-radius: 10px;
-            font-weight: 700;
+            border-radius: 11px !important;
+            font-weight: 700 !important;
+            font-size: 0.96rem !important;
             width: 100%;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
-            border: none;
-            padding: 0.55rem 1rem;
+            min-height: 44px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.22);
+            transition: all 0.18s ease;
+        }
+        .stButton > button:hover, .stFormSubmitButton > button:hover {
+            background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+            box-shadow: 0 6px 16px rgba(29, 78, 216, 0.3);
         }
 
+        /* Dataframe Table */
         [data-testid="stDataFrame"] {
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #cbd5e1;
+            border-radius: 14px !important;
+            overflow: hidden !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
         }
 
+        /* --- Mobile Responsiveness (<= 768px) --- */
         @media (max-width: 768px) {
             .block-container {
                 padding-top: 0.85rem;
-                padding-bottom: 2rem;
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
+                padding-bottom: 2.2rem;
+                padding-left: 0.8rem;
+                padding-right: 0.8rem;
             }
 
             .hero-box {
-                padding: 14px 16px;
-                border-radius: 12px;
+                padding: 16px 16px;
+                border-radius: 14px;
+                margin-bottom: 14px;
             }
-
             .hero-box h1 {
-                font-size: 1.35rem !important;
+                font-size: 1.32rem !important;
+            }
+            .hero-box p {
+                font-size: 0.84rem !important;
             }
 
-            .hero-box p {
-                font-size: 0.8rem !important;
+            .section-heading {
+                font-size: 1.04rem;
+                margin: 14px 0 8px 0;
             }
 
             [data-testid="stMetric"] {
-                padding: 10px 10px;
-                border-radius: 10px;
-                margin-bottom: 6px;
+                padding: 11px 12px;
+                border-radius: 12px;
+                margin-bottom: 8px;
             }
-
             [data-testid="stMetricLabel"] > div {
+                font-size: 0.78rem !important;
+            }
+            [data-testid="stMetricValue"] > div {
+                font-size: 1.08rem !important;
+            }
+            [data-testid="stMetricDelta"] > div {
                 font-size: 0.74rem !important;
             }
 
-            [data-testid="stMetricValue"] > div {
-                font-size: 1.05rem !important;
+            .sku-card {
+                padding: 14px 14px;
+                border-radius: 13px;
+                margin-bottom: 10px;
+            }
+            .sku-title {
+                font-size: 1rem;
+                margin-bottom: 6px;
+            }
+            .sku-line {
+                font-size: 0.86rem;
+                line-height: 1.5;
             }
 
-            .sku-card {
-                padding: 12px 14px;
+            .stButton > button, .stFormSubmitButton > button {
+                min-height: 46px;
+                font-size: 0.92rem !important;
             }
 
             [data-testid="stDataFrame"] {
-                font-size: 0.78rem !important;
+                font-size: 0.8rem !important;
             }
         }
     </style>
@@ -165,46 +287,35 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-SPREADSHEET_NAME = "TSM_Sales_Database"
-SALES_SHEET = "Sales_Data"
-CONFIG_SHEET = "SR_Config"
-KHATA_RATE_PER_TON = 200000.0
-DEFAULT_DAYS = 26
-
 SALES_COLS = [
     "Date",
-    "Session",
+    "SR_Slot",
     "SR_Name",
-    "SKU",
-    "Qty",
-    "Unit",
-    "Rate",
-    "Total_BDT",
-    "Delivery_BDT",
-    "Khata_Ton",
-    "Delivery_Khata_Ton",
-    "Memo",
+    "Summary_Type",     # "Half Summary" বা "Full Summary"
+    "Pen_Order_Pcs",
+    "Stat_Order_Pcs",
+    "Khata_Order_BDT",
+    "Khata_Order_Ton",
+    "Memo_Count",
     "Note",
 ]
 
-CONFIG_COLS = [
+TARGET_COLS = [
     "SR_Slot",
     "SR_Name",
     "Working_Days",
-    "Pen_Monthly_Pcs",
-    "Pen_Rate",
-    "Stationery_Monthly_Pcs",
-    "Stationery_Rate",
-    "Khata_Monthly_Ton",
+    "Pen_Monthly_Target_Pcs",
+    "Stat_Monthly_Target_Pcs",
+    "Khata_Monthly_Target_Ton",
 ]
 
-INITIAL_SRS = [
-    ["SR-1", "SR 1", 26, 5000.0, 10.0, 3000.0, 25.0, 5.0],
-    ["SR-2", "SR 2", 26, 5000.0, 10.0, 3000.0, 25.0, 5.0],
-    ["SR-3", "SR 3", 26, 5000.0, 10.0, 3000.0, 25.0, 5.0],
-    ["SR-4", "SR 4", 26, 5000.0, 10.0, 3000.0, 25.0, 5.0],
-    ["SR-5", "SR 5", 26, 5000.0, 10.0, 3000.0, 25.0, 5.0],
-    ["SR-6", "SR 6", 26, 5000.0, 10.0, 3000.0, 25.0, 5.0],
+INITIAL_TARGETS = [
+    ["SR-1", "SR 1", 26, 5000.0, 3000.0, 2.5],
+    ["SR-2", "SR 2", 26, 5000.0, 3000.0, 2.5],
+    ["SR-3", "SR 3", 26, 5000.0, 3000.0, 2.5],
+    ["SR-4", "SR 4", 26, 5000.0, 3000.0, 2.5],
+    ["SR-5", "SR 5", 26, 5000.0, 3000.0, 2.5],
+    ["SR-6", "SR 6", 26, 5000.0, 3000.0, 2.5],
 ]
 
 SCOPES = [
@@ -213,7 +324,7 @@ SCOPES = [
 ]
 
 
-def safe_int(val, default=26, min_val=1):
+def safe_int(val, default=0, min_val=0):
     try:
         n = int(float(str(val).strip()))
         return n if n >= min_val else default
@@ -221,7 +332,7 @@ def safe_int(val, default=26, min_val=1):
         return default
 
 
-def safe_num(val, default=0.0, min_val=0.0):
+def safe_float(val, default=0.0, min_val=0.0):
     try:
         n = float(str(val).strip())
         return n if n >= min_val else default
@@ -232,7 +343,7 @@ def safe_num(val, default=0.0, min_val=0.0):
 @st.cache_resource
 def connect_sheets():
     if "gcp_service_account" not in st.secrets:
-        st.error("`gcp_service_account` not found in Streamlit Secrets.")
+        st.error("Streamlit Secrets-এ `gcp_service_account` পাওয়া যায়নি।")
         st.stop()
 
     raw = st.secrets["gcp_service_account"]
@@ -244,482 +355,444 @@ def connect_sheets():
     try:
         sales_ws = book.worksheet(SALES_SHEET)
     except gspread.WorksheetNotFound:
-        sales_ws = book.add_worksheet(title=SALES_SHEET, rows=500, cols=16)
+        sales_ws = book.add_worksheet(title=SALES_SHEET, rows=1000, cols=12)
         sales_ws.append_row(SALES_COLS)
 
     if not sales_ws.get_all_values():
         sales_ws.append_row(SALES_COLS)
 
     try:
-        cfg_ws = book.worksheet(CONFIG_SHEET)
+        target_ws = book.worksheet(TARGET_SHEET)
     except gspread.WorksheetNotFound:
-        cfg_ws = book.add_worksheet(title=CONFIG_SHEET, rows=20, cols=10)
-        cfg_ws.append_row(CONFIG_COLS)
-        for r in INITIAL_SRS:
-            cfg_ws.append_row(r)
+        target_ws = book.add_worksheet(title=TARGET_SHEET, rows=20, cols=10)
+        target_ws.append_row(TARGET_COLS)
+        for r in INITIAL_TARGETS:
+            target_ws.append_row(r)
 
-    if not cfg_ws.get_all_values():
-        cfg_ws.append_row(CONFIG_COLS)
-        for r in INITIAL_SRS:
-            cfg_ws.append_row(r)
+    if not target_ws.get_all_values():
+        target_ws.append_row(TARGET_COLS)
+        for r in INITIAL_TARGETS:
+            target_ws.append_row(r)
 
-    return sales_ws, cfg_ws
+    return sales_ws, target_ws
 
 
-def write_config_all(cfg_ws, df_c):
-    cfg_ws.clear()
-    cfg_ws.append_row(CONFIG_COLS)
+def read_targets(target_ws):
+    vals = target_ws.get_all_values()
+    if len(vals) <= 1:
+        df = pd.DataFrame(INITIAL_TARGETS, columns=TARGET_COLS)
+    else:
+        rows = [(r + [""] * len(TARGET_COLS))[: len(TARGET_COLS)] for r in vals[1:]]
+        df = pd.DataFrame(rows, columns=TARGET_COLS)
+
+    df = df.head(6).copy()
+    while len(df) < 6:
+        idx = len(df)
+        df = pd.concat([df, pd.DataFrame([INITIAL_TARGETS[idx]], columns=TARGET_COLS)], ignore_index=True)
+
+    df["SR_Slot"] = [f"SR-{i+1}" for i in range(6)]
+    df["SR_Name"] = [
+        str(x).strip() if str(x).strip() else f"SR {i+1}"
+        for i, x in enumerate(df["SR_Name"])
+    ]
+    df["Working_Days"] = df["Working_Days"].apply(lambda v: safe_int(v, DEFAULT_DAYS, 1))
+    for col in ["Pen_Monthly_Target_Pcs", "Stat_Monthly_Target_Pcs", "Khata_Monthly_Target_Ton"]:
+        df[col] = df[col].apply(lambda v: safe_float(v, 0.0, 0.0))
+
+    df["Khata_Monthly_Target_BDT"] = df["Khata_Monthly_Target_Ton"] * KHATA_RATE_PER_TON
+    return df
+
+
+def save_targets(target_ws, df):
+    target_ws.clear()
+    target_ws.append_row(TARGET_COLS)
     for i in range(6):
-        r = df_c.iloc[i]
-        cfg_ws.append_row([
+        r = df.iloc[i]
+        target_ws.append_row([
             f"SR-{i+1}",
             str(r["SR_Name"]).strip() or f"SR {i+1}",
             safe_int(r["Working_Days"], DEFAULT_DAYS, 1),
-            float(r["Pen_Monthly_Pcs"]),
-            float(r["Pen_Rate"]),
-            float(r["Stationery_Monthly_Pcs"]),
-            float(r["Stationery_Rate"]),
-            float(r["Khata_Monthly_Ton"]),
+            round(float(r["Pen_Monthly_Target_Pcs"]), 2),
+            round(float(r["Stat_Monthly_Target_Pcs"]), 2),
+            round(float(r["Khata_Monthly_Target_Ton"]), 4),
         ])
-
-
-def read_config(cfg_ws):
-    vals = cfg_ws.get_all_values()
-    if len(vals) <= 1:
-        df_c = pd.DataFrame(INITIAL_SRS, columns=CONFIG_COLS)
-    else:
-        rows = [(r + [""] * len(CONFIG_COLS))[: len(CONFIG_COLS)] for r in vals[1:]]
-        df_c = pd.DataFrame(rows, columns=CONFIG_COLS)
-
-    df_c = df_c.head(6).copy()
-    while len(df_c) < 6:
-        idx = len(df_c)
-        df_c = pd.concat([df_c, pd.DataFrame([INITIAL_SRS[idx]], columns=CONFIG_COLS)], ignore_index=True)
-
-    df_c["SR_Slot"] = [f"SR-{i+1}" for i in range(6)]
-    df_c["SR_Name"] = [
-        str(x).strip() if str(x).strip() else f"SR {i+1}"
-        for i, x in enumerate(df_c["SR_Name"])
-    ]
-    df_c["Working_Days"] = df_c["Working_Days"].apply(lambda v: safe_int(v, DEFAULT_DAYS, 1))
-    for col in ["Pen_Monthly_Pcs", "Pen_Rate", "Stationery_Monthly_Pcs", "Stationery_Rate", "Khata_Monthly_Ton"]:
-        df_c[col] = df_c[col].apply(safe_num)
-    return df_c
 
 
 def read_sales(sales_ws):
     vals = sales_ws.get_all_values()
     if len(vals) <= 1:
-        return pd.DataFrame(columns=SALES_COLS)
+        return pd.DataFrame(columns=SALES_COLS + ["Dt"])
 
     rows = [(r + [""] * len(SALES_COLS))[: len(SALES_COLS)] for r in vals[1:]]
-    df_s = pd.DataFrame(rows, columns=SALES_COLS)
+    df = pd.DataFrame(rows, columns=SALES_COLS)
 
-    for col in ["Date", "Session", "SR_Name", "SKU", "Unit", "Note"]:
-        df_s[col] = df_s[col].astype(str).str.strip()
+    for col in ["Date", "SR_Slot", "SR_Name", "Summary_Type", "Note"]:
+        df[col] = df[col].astype(str).str.strip()
 
-    df_s["Session"] = df_s["Session"].replace("", "Full Summary")
-    for col in ["Qty", "Rate", "Total_BDT", "Delivery_BDT", "Khata_Ton", "Delivery_Khata_Ton"]:
-        df_s[col] = df_s[col].apply(safe_num)
+    df["Summary_Type"] = df["Summary_Type"].replace("", "Full Summary")
+    for col in ["Pen_Order_Pcs", "Stat_Order_Pcs", "Khata_Order_BDT", "Khata_Order_Ton"]:
+        df[col] = df[col].apply(lambda v: safe_float(v, 0.0, 0.0))
 
-    raw_deliv = pd.Series(rows, columns=SALES_COLS)["Delivery_BDT"].astype(str).str.strip()
-    df_s.loc[raw_deliv == "", "Delivery_BDT"] = df_s.loc[raw_deliv == "", "Total_BDT"]
+    missing_ton_mask = (df["Khata_Order_BDT"] > 0) & (df["Khata_Order_Ton"] <= 0)
+    df.loc[missing_ton_mask, "Khata_Order_Ton"] = df.loc[missing_ton_mask, "Khata_Order_BDT"] / KHATA_RATE_PER_TON
 
-    raw_deliv_ton = pd.Series(rows, columns=SALES_COLS)["Delivery_Khata_Ton"].astype(str).str.strip()
-    df_s.loc[raw_deliv_ton == "", "Delivery_Khata_Ton"] = df_s.loc[raw_deliv_ton == "", "Khata_Ton"]
-
-    df_s["Memo"] = df_s["Memo"].apply(lambda v: safe_int(v, 0, 0))
-    df_s["Dt"] = pd.to_datetime(df_s["Date"], errors="coerce").dt.date
-    return df_s
+    df["Memo_Count"] = df["Memo_Count"].apply(lambda v: safe_int(v, 0, 0))
+    df["Dt"] = pd.to_datetime(df["Date"], errors="coerce").dt.date
+    return df
 
 
-def effective_sr_day_rows(df_sr_day):
+def effective_day_rows(df_sr_day):
+    """একই দিনে Full Summary থাকলে সেটি নেয়, না থাকলে Half Summary নেয়।"""
     if df_sr_day.empty:
         return df_sr_day
-    full_rows = df_sr_day[df_sr_day["Session"] == "Full Summary"]
+    full_rows = df_sr_day[df_sr_day["Summary_Type"] == "Full Summary"]
     return full_rows if not full_rows.empty else df_sr_day
 
 
-def effective_period_rows(df_period, sr_name):
-    if df_period.empty:
+def effective_month_rows(df_month, sr_slot):
+    """মাসের প্রতিদিনের কার্যকর এন্ট্রি বের করে।"""
+    if df_month.empty:
         return pd.DataFrame(columns=SALES_COLS)
-    sub = df_period[df_period["SR_Name"] == sr_name]
+    sub = df_month[df_month["SR_Slot"] == sr_slot]
     if sub.empty:
         return pd.DataFrame(columns=SALES_COLS)
-    chunks = [effective_sr_day_rows(day_grp) for _, day_grp in sub.groupby("Date", sort=False)]
+    chunks = [effective_day_rows(grp) for _, grp in sub.groupby("Date", sort=False)]
     return pd.concat(chunks, ignore_index=True) if chunks else pd.DataFrame(columns=SALES_COLS)
 
 
 try:
-    sales_ws, cfg_ws = connect_sheets()
-    cfg_df = read_config(cfg_ws)
+    sales_ws, target_ws = connect_sheets()
+    targets_df = read_targets(target_ws)
     sales_df = read_sales(sales_ws)
-except Exception as err:
-    st.error(f"Google Sheets connection error: {err}")
+except Exception as e:
+    st.error(f"Google Sheets সংযোগে সমস্যা: {e}")
     st.stop()
 
-sr_names = cfg_df["SR_Name"].tolist()
-
-st.sidebar.title("Navigation")
-view_mode = st.sidebar.radio("Choose View", ["SR Self-Entry & My Report", "TSM All SRs & Total"])
-rep_date = st.sidebar.date_input("Report Date", value=date.today())
-rep_date_str = str(rep_date)
-wk_start = rep_date - timedelta(days=6)
-mo_prefix = rep_date_str[:7]
+st.sidebar.title("📊 মেনু / Navigation")
+mode = st.sidebar.radio(
+    "ভিউ নির্বাচন করুন",
+    ["SR এন্ট্রি ও আমার রিপোর্ট", "TSM ড্যাশবোর্ড (সব SR ও টোটাল)"],
+)
+selected_date = st.sidebar.date_input("রিপোর্টের তারিখ", value=date.today())
+sel_date_str = str(selected_date)
+month_prefix = sel_date_str[:7]
 
 if sales_df.empty:
-    d_sub = pd.DataFrame(columns=SALES_COLS)
-    w_sub = pd.DataFrame(columns=SALES_COLS)
-    m_sub = pd.DataFrame(columns=SALES_COLS)
+    day_df = pd.DataFrame(columns=SALES_COLS)
+    month_df = pd.DataFrame(columns=SALES_COLS)
 else:
-    d_sub = sales_df[sales_df["Date"] == rep_date_str]
-    w_sub = sales_df[(sales_df["Dt"] >= wk_start) & (sales_df["Dt"] <= rep_date)]
-    m_sub = sales_df[sales_df["Date"].str.startswith(mo_prefix)]
+    day_df = sales_df[sales_df["Date"] == sel_date_str]
+    month_df = sales_df[sales_df["Date"].str.startswith(month_prefix)]
 
 
-def build_report(c_df, d_df, w_df, m_df):
-    rows = []
-    for _, r in c_df.iterrows():
-        sr = r["SR_Name"]
-        days = safe_int(r["Working_Days"], DEFAULT_DAYS, 1)
+def build_summary(t_df, d_df, m_df):
+    records = []
+    for _, row in t_df.iterrows():
+        slot = row["SR_Slot"]
+        name = row["SR_Name"]
+        days = safe_int(row["Working_Days"], DEFAULT_DAYS, 1)
 
-        pen_mt = float(r["Pen_Monthly_Pcs"])
-        pen_rt = float(r["Pen_Rate"])
-        stat_mt = float(r["Stationery_Monthly_Pcs"])
-        stat_rt = float(r["Stationery_Rate"])
-        kh_mt_ton = float(r["Khata_Monthly_Ton"])
-        kh_mt_bdt = kh_mt_ton * KHATA_RATE_PER_TON
+        pen_m_tgt = float(row["Pen_Monthly_Target_Pcs"])
+        stat_m_tgt = float(row["Stat_Monthly_Target_Pcs"])
+        khata_m_tgt_ton = float(row["Khata_Monthly_Target_Ton"])
+        khata_m_tgt_bdt = khata_m_tgt_ton * KHATA_RATE_PER_TON
 
-        m_target = (pen_mt * pen_rt) + (stat_mt * stat_rt) + kh_mt_bdt
-        d_target = m_target / days
+        pen_d_tgt = pen_m_tgt / days
+        stat_d_tgt = stat_m_tgt / days
+        khata_d_tgt_bdt = khata_m_tgt_bdt / days
 
-        raw_sd = d_df[d_df["SR_Name"] == sr] if not d_df.empty else pd.DataFrame(columns=SALES_COLS)
-        sd = effective_sr_day_rows(raw_sd)
-        sw = effective_period_rows(w_df, sr)
-        sm = effective_period_rows(m_df, sr)
+        raw_sd = d_df[d_df["SR_Slot"] == slot] if not d_df.empty else pd.DataFrame(columns=SALES_COLS)
+        sd = effective_day_rows(raw_sd)
+        sm = effective_month_rows(m_df, slot)
 
-        d_sales = sd["Total_BDT"].sum() if not sd.empty else 0.0
-        d_deliv = sd["Delivery_BDT"].sum() if not sd.empty else 0.0
-        d_memo = int(sd["Memo"].sum()) if not sd.empty else 0
-        d_short = max(0.0, d_target - d_sales)
+        pen_d_ord = sd["Pen_Order_Pcs"].sum() if not sd.empty else 0.0
+        stat_d_ord = sd["Stat_Order_Pcs"].sum() if not sd.empty else 0.0
+        khata_d_ord_bdt = sd["Khata_Order_BDT"].sum() if not sd.empty else 0.0
+        d_memo = int(sd["Memo_Count"].sum()) if not sd.empty else 0
 
-        w_sales = sw["Total_BDT"].sum() if not sw.empty else 0.0
-        w_deliv = sw["Delivery_BDT"].sum() if not sw.empty else 0.0
-        w_memo = int(sw["Memo"].sum()) if not sw.empty else 0
+        pen_d_short = max(0.0, pen_d_tgt - pen_d_ord)
+        stat_d_short = max(0.0, stat_d_tgt - stat_d_ord)
+        khata_d_short_bdt = max(0.0, khata_d_tgt_bdt - khata_d_ord_bdt)
 
-        m_sales = sm["Total_BDT"].sum() if not sm.empty else 0.0
-        m_deliv = sm["Delivery_BDT"].sum() if not sm.empty else 0.0
-        m_memo = int(sm["Memo"].sum()) if not sm.empty else 0
-        m_short = max(0.0, m_target - m_sales)
-        ach_pct = (m_sales / m_target * 100.0) if m_target > 0 else 0.0
+        pen_m_sales = sm["Pen_Order_Pcs"].sum() if not sm.empty else 0.0
+        stat_m_sales = sm["Stat_Order_Pcs"].sum() if not sm.empty else 0.0
+        khata_m_sales_bdt = sm["Khata_Order_BDT"].sum() if not sm.empty else 0.0
+        khata_m_sales_ton = khata_m_sales_bdt / KHATA_RATE_PER_TON
+        m_memo = int(sm["Memo_Count"].sum()) if not sm.empty else 0
 
-        rows.append({
-            "SR_Name": sr,
-            "Days": days,
-            "Day_Target": d_target,
-            "Day_Sales": d_sales,
-            "Day_Delivery": d_deliv,
-            "Day_Shortfall": d_short,
-            "Day_Memo": d_memo,
-            "Week_Sales": w_sales,
-            "Week_Delivery": w_deliv,
-            "Week_Memo": w_memo,
-            "Month_Target": m_target,
-            "Month_Sales": m_sales,
-            "Month_Delivery": m_deliv,
-            "Month_Shortfall": m_short,
-            "Ach_%": ach_pct,
+        records.append({
+            "SR_Slot": slot,
+            "SR_Name": name,
+            "Working_Days": days,
+            "Pen_M_Target": pen_m_tgt,
+            "Stat_M_Target": stat_m_tgt,
+            "Khata_M_Target_Ton": khata_m_tgt_ton,
+            "Khata_M_Target_BDT": khata_m_tgt_bdt,
+            "Pen_M_Sales": pen_m_sales,
+            "Stat_M_Sales": stat_m_sales,
+            "Khata_M_Sales_BDT": khata_m_sales_bdt,
+            "Khata_M_Sales_Ton": khata_m_sales_ton,
             "Month_Memo": m_memo,
-            "Pen_Monthly_Pcs": pen_mt,
-            "Pen_Rate": pen_rt,
-            "Stationery_Monthly_Pcs": stat_mt,
-            "Stationery_Rate": stat_rt,
-            "Khata_Monthly_Ton": kh_mt_ton,
-            "Day_Pen_Pcs": sd[sd["SKU"] == "Pen"]["Qty"].sum() if not sd.empty else 0.0,
-            "Day_Stat_Pcs": sd[sd["SKU"] == "Stationery"]["Qty"].sum() if not sd.empty else 0.0,
-            "Day_Khata_Ton": sd[sd["SKU"] == "Khata"]["Khata_Ton"].sum() if not sd.empty else 0.0,
-            "Day_Deliv_Khata_Ton": sd[sd["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sd.empty else 0.0,
-            "Month_Pen_Pcs": sm[sm["SKU"] == "Pen"]["Qty"].sum() if not sm.empty else 0.0,
-            "Month_Stat_Pcs": sm[sm["SKU"] == "Stationery"]["Qty"].sum() if not sm.empty else 0.0,
-            "Month_Khata_Ton": sm[sm["SKU"] == "Khata"]["Khata_Ton"].sum() if not sm.empty else 0.0,
-            "Month_Deliv_Khata_Ton": sm[sm["SKU"] == "Khata"]["Delivery_Khata_Ton"].sum() if not sm.empty else 0.0,
+            "Pen_D_Target": pen_d_tgt,
+            "Stat_D_Target": stat_d_tgt,
+            "Khata_D_Target_BDT": khata_d_tgt_bdt,
+            "Pen_D_Order": pen_d_ord,
+            "Stat_D_Order": stat_d_ord,
+            "Khata_D_Order_BDT": khata_d_ord_bdt,
+            "Pen_D_Shortfall": pen_d_short,
+            "Stat_D_Shortfall": stat_d_short,
+            "Khata_D_Shortfall_BDT": khata_d_short_bdt,
+            "Day_Memo": d_memo,
         })
-    return pd.DataFrame(rows)
+    return pd.DataFrame(records)
 
 
-rep_df = build_report(cfg_df, d_sub, w_sub, m_sub)
-
-
-def show_entry_form(prefix, sr_name, cfg_row, sales_ws):
-    sku = st.selectbox("Select SKU", ["Pen", "Stationery", "Khata"], key=f"{prefix}_sku")
-    with st.form(f"{prefix}_form", clear_on_submit=True):
-        c1, c2 = st.columns(2)
-        with c1:
-            e_date = st.date_input("Date", value=date.today(), key=f"{prefix}_date")
-        with c2:
-            e_ses = st.selectbox("Session", ["Half Summary", "Full Summary"], key=f"{prefix}_ses")
-
-        if sku == "Pen":
-            qty = st.number_input("Pen Quantity (Pcs)", min_value=0.0, step=10.0, format="%.0f", key=f"{prefix}_pq")
-            rate = st.number_input("Pen Rate (BDT)", min_value=0.0, value=float(cfg_row["Pen_Rate"]), step=1.0, format="%.2f", key=f"{prefix}_pr")
-            total_bdt = float(qty) * float(rate)
-            deliv_bdt = st.number_input("Delivered Amount (BDT)", min_value=0.0, value=float(total_bdt), step=100.0, format="%.2f", key=f"{prefix}_pd")
-            kh_ton = 0.0
-            deliv_ton = 0.0
-            unit = "Pcs"
-        elif sku == "Stationery":
-            qty = st.number_input("Stationery Quantity (Pcs)", min_value=0.0, step=10.0, format="%.0f", key=f"{prefix}_sq")
-            rate = st.number_input("Stationery Rate (BDT)", min_value=0.0, value=float(cfg_row["Stationery_Rate"]), step=1.0, format="%.2f", key=f"{prefix}_sr")
-            total_bdt = float(qty) * float(rate)
-            deliv_bdt = st.number_input("Delivered Amount (BDT)", min_value=0.0, value=float(total_bdt), step=100.0, format="%.2f", key=f"{prefix}_sd")
-            kh_ton = 0.0
-            deliv_ton = 0.0
-            unit = "Pcs"
-        else:
-            kh_ton = st.number_input("Khata Order (Ton)", min_value=0.0, step=0.25, format="%.2f", key=f"{prefix}_kt")
-            deliv_ton = st.number_input("Khata Delivery (Ton)", min_value=0.0, value=float(kh_ton), step=0.25, format="%.2f", key=f"{prefix}_kdt")
-            rate = KHATA_RATE_PER_TON
-            total_bdt = float(kh_ton) * KHATA_RATE_PER_TON
-            deliv_bdt = float(deliv_ton) * KHATA_RATE_PER_TON
-            qty = float(kh_ton)
-            unit = "Ton"
-
-        c3, c4 = st.columns(2)
-        with c3:
-            memo = st.number_input("Memos", min_value=0, step=1, format="%d", key=f"{prefix}_memo")
-        with c4:
-            note = st.text_input("Area / Note", key=f"{prefix}_note")
-
-        if st.form_submit_button("Submit Entry"):
-            if qty <= 0 and total_bdt <= 0 and deliv_bdt <= 0:
-                st.warning("Enter quantity or amount greater than 0.")
-            else:
-                sales_ws.append_row([
-                    str(e_date),
-                    e_ses,
-                    sr_name,
-                    sku,
-                    round(float(qty), 4),
-                    unit,
-                    round(float(rate), 2),
-                    round(float(total_bdt), 2),
-                    round(float(deliv_bdt), 2),
-                    round(float(kh_ton), 4),
-                    round(float(deliv_ton), 4),
-                    int(memo),
-                    note.strip(),
-                ])
-                st.success("Saved!")
-                st.rerun()
-
+summary_df = build_summary(targets_df, day_df, month_df)
 
 # ==============================================================================
-# VIEW 1: SR SELF-ENTRY, OWN TARGET & MY REPORT
+# VIEW 1: SR SELF-ENTRY & INDIVIDUAL REPORT
 # ==============================================================================
-if view_mode == "SR Self-Entry & My Report":
+if mode == "SR এন্ট্রি ও আমার রিপোর্ট":
     st.markdown(
         """
         <div class="hero-box">
-            <h1>SR Self-Entry &amp; My Sales Report</h1>
-            <p>Set your own target &amp; rates, submit daily sales &amp; delivery entries, and view your full calculation</p>
+            <h1>SR সেলস এন্ট্রি ও ব্যক্তিগত রিপোর্ট</h1>
+            <p>১ম বক্সে মাসিক টার্গেট (খাতা: টন ও টাকা) ও মাসিক সেলস দেখুন; ২য় বক্সে ডেইলি টার্গেট, খাতার টাকা সেলস, শর্টফল, মেমো ও সামারি দিন</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    sr_name = st.selectbox("Select SR", sr_names)
-    sr_idx = sr_names.index(sr_name)
-    cfg_row = cfg_df.iloc[sr_idx]
+    sr_options = [f"{r['SR_Slot']} — {r['SR_Name']}" for _, r in targets_df.iterrows()]
+    chosen = st.selectbox("আপনার SR আইডি নির্বাচন করুন", sr_options)
+    sr_idx = sr_options.index(chosen)
+    t_row = targets_df.iloc[sr_idx]
+    s_row = summary_df.iloc[sr_idx]
+    sr_slot = t_row["SR_Slot"]
+    sr_name = t_row["SR_Name"]
 
-    with st.expander("My Target & Rate Setup", expanded=False):
-        with st.form(f"my_cfg_{sr_idx}"):
+    # --- BOX 1: MONTHLY TARGET & MONTHLY SALES BOX ---
+    st.markdown('<div class="section-heading">📦 ১. মাসিক টার্গেট ও মাসিক সেলস বক্স</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        with st.form(f"monthly_target_form_{sr_idx}"):
+            st.caption("মাসিক টার্গেট সেট করুন (১ টন খাতা = ২,০০,০০০ টাকা হিসেবে টাকা অটো দেখাবে)")
             c1, c2, c3, c4 = st.columns(4)
             with c1:
-                w_days = st.number_input("Working Days", min_value=1, value=safe_int(cfg_row["Working_Days"], DEFAULT_DAYS, 1), step=1)
+                new_name = st.text_input("SR নাম", value=sr_name)
             with c2:
-                p_mt = st.number_input("Pen Monthly (Pcs)", min_value=0.0, value=float(cfg_row["Pen_Monthly_Pcs"]), step=100.0, format="%.0f")
+                new_days = st.number_input("কার্যদিবস (Working Days)", min_value=1, max_value=31, value=safe_int(t_row["Working_Days"], DEFAULT_DAYS, 1), step=1)
             with c3:
-                p_rt = st.number_input("Pen Rate (BDT)", min_value=0.0, value=float(cfg_row["Pen_Rate"]), step=1.0, format="%.2f")
+                new_pen_t = st.number_input("কলম মাসিক টার্গেট (Pcs)", min_value=0.0, value=float(t_row["Pen_Monthly_Target_Pcs"]), step=100.0, format="%.0f")
             with c4:
-                k_mt = st.number_input("Khata Monthly (Ton)", min_value=0.0, value=float(cfg_row["Khata_Monthly_Ton"]), step=0.25, format="%.2f")
+                new_stat_t = st.number_input("স্টেশনারি মাসিক টার্গেট (Pcs)", min_value=0.0, value=float(t_row["Stat_Monthly_Target_Pcs"]), step=100.0, format="%.0f")
 
-            c5, c6 = st.columns(2)
+            c5, c6, c7 = st.columns([1.2, 1.3, 1.5])
             with c5:
-                s_mt = st.number_input("Stationery Monthly (Pcs)", min_value=0.0, value=float(cfg_row["Stationery_Monthly_Pcs"]), step=100.0, format="%.0f")
+                new_khata_t_ton = st.number_input("খাতা মাসিক টার্গেট (Ton)", min_value=0.0, value=float(t_row["Khata_Monthly_Target_Ton"]), step=0.25, format="%.2f")
             with c6:
-                s_rt = st.number_input("Stationery Rate (BDT)", min_value=0.0, value=float(cfg_row["Stationery_Rate"]), step=1.0, format="%.2f")
+                auto_khata_tgt_bdt = new_khata_t_ton * KHATA_RATE_PER_TON
+                st.metric("খাতা মাসিক টার্গেট (অটো টাকা)", f"৳{auto_khata_tgt_bdt:,.0f}")
+            with c7:
+                st.write("")
+                save_t_btn = st.form_submit_button("মাসিক টার্গেট সংরক্ষণ করুন")
 
-            if st.form_submit_button("Save My Target"):
-                new_cfg = cfg_df.copy()
-                new_cfg.loc[sr_idx, "Working_Days"] = safe_int(w_days, DEFAULT_DAYS, 1)
-                new_cfg.loc[sr_idx, "Pen_Monthly_Pcs"] = float(p_mt)
-                new_cfg.loc[sr_idx, "Pen_Rate"] = float(p_rt)
-                new_cfg.loc[sr_idx, "Stationery_Monthly_Pcs"] = float(s_mt)
-                new_cfg.loc[sr_idx, "Stationery_Rate"] = float(s_rt)
-                new_cfg.loc[sr_idx, "Khata_Monthly_Ton"] = float(k_mt)
-                write_config_all(cfg_ws, new_cfg)
-                st.success("Target saved!")
+            if save_t_btn:
+                updated = targets_df.copy()
+                updated.loc[sr_idx, "SR_Name"] = new_name.strip() or f"SR {sr_idx + 1}"
+                updated.loc[sr_idx, "Working_Days"] = int(new_days)
+                updated.loc[sr_idx, "Pen_Monthly_Target_Pcs"] = float(new_pen_t)
+                updated.loc[sr_idx, "Stat_Monthly_Target_Pcs"] = float(new_stat_t)
+                updated.loc[sr_idx, "Khata_Monthly_Target_Ton"] = float(new_khata_t_ton)
+                save_targets(target_ws, updated)
+                st.success("মাসিক টার্গেট সেভ হয়েছে!")
                 st.rerun()
 
-    st.subheader("Daily Sales & Delivery Entry")
-    show_entry_form("sr_tab", sr_name, cfg_row, sales_ws)
-
-    me = rep_df[rep_df["SR_Name"] == sr_name].iloc[0]
-    st.subheader(f"My Summary ({rep_date_str})")
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Day Target", f"BDT {me['Day_Target']:,.0f}")
-    m2.metric("Day Sales", f"BDT {me['Day_Sales']:,.0f}", f"Memo: {int(me['Day_Memo'])}")
-    m3.metric("Day Delivery", f"BDT {me['Day_Delivery']:,.0f}")
-    m4.metric("Day Shortfall", f"BDT {me['Day_Shortfall']:,.0f}")
-
-    m5, m6, m7, m8 = st.columns(4)
-    m5.metric("Month Target", f"BDT {me['Month_Target']:,.0f}")
-    m6.metric("Month Sales", f"BDT {me['Month_Sales']:,.0f}", f"Memo: {int(me['Month_Memo'])}")
-    m7.metric("Month Delivery", f"BDT {me['Month_Delivery']:,.0f}")
-    m8.metric("Achievement %", f"{me['Ach_%']:.1f}%")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    b1, b2, b3 = st.columns(3)
-    with b1:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-pen">
-                <div class="sku-title">{sr_name} — Pen</div>
-                <div class="sku-line">• Today: <b>{me['Day_Pen_Pcs']:,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{me['Month_Pen_Pcs']:,.0f} / {me['Pen_Monthly_Pcs']:,.0f} Pcs</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with b2:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-stat">
-                <div class="sku-title">{sr_name} — Stationery</div>
-                <div class="sku-line">• Today: <b>{me['Day_Stat_Pcs']:,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{me['Month_Stat_Pcs']:,.0f} / {me['Stationery_Monthly_Pcs']:,.0f} Pcs</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with b3:
-        st.markdown(
-            f"""
-            <div class="sku-card sku-khata">
-                <div class="sku-title">{sr_name} — Khata</div>
-                <div class="sku-line">• Today Order: <b>{me['Day_Khata_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Day_Deliv_Khata_Ton']:,.2f} Ton</b></div>
-                <div class="sku-line">• Monthly Order: <b>{me['Month_Khata_Ton']:,.2f} / {me['Khata_Monthly_Ton']:,.2f} Ton</b> | Delivery: <b>{me['Month_Deliv_Khata_Ton']:,.2f} Ton</b></div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+        st.markdown(f"**মাসিক সেলস বক্স ({month_prefix} — দৈনিক এন্ট্রি থেকে অটো যোগ ও টন রূপান্তর):**")
+        m1, m2, m3 = st.columns(3)
+        m1.metric("কলম মাসিক সেলস / টার্গেট", f"{s_row['Pen_M_Sales']:,.0f} / {s_row['Pen_M_Target']:,.0f} Pcs")
+        m2.metric("স্টেশনারি মাসিক সেলস / টার্গেট", f"{s_row['Stat_M_Sales']:,.0f} / {s_row['Stat_M_Target']:,.0f} Pcs")
+        m3.metric(
+            "খাতা মাসিক সেলস (টাকা ও টন)",
+            f"৳{s_row['Khata_M_Sales_BDT']:,.0f} ({s_row['Khata_M_Sales_Ton']:,.2f} Ton)",
+            f"টার্গেট: ৳{s_row['Khata_M_Target_BDT']:,.0f} ({s_row['Khata_M_Target_Ton']:,.2f} Ton)",
         )
 
-    st.subheader("My Submitted Entries")
-    my_df = sales_df[sales_df["SR_Name"] == sr_name] if not sales_df.empty else pd.DataFrame(columns=SALES_COLS)
-    if my_df.empty:
-        st.info("No entries yet.")
+    # --- BOX 2: DAILY TARGET, ORDER (KHATA IN BDT), SHORTFALL, MEMO & SUMMARY ---
+    st.markdown(f'<div class="section-heading">📝 ২. ডেইলি বক্স — টার্গেট, সেলস, শর্টফল, মেমো ও সামারি ({sel_date_str})</div>', unsafe_allow_html=True)
+    with st.container(border=True):
+        d1, d2, d3 = st.columns(3)
+        d1.metric("কলম ডেইলি টার্গেট", f"{s_row['Pen_D_Target']:,.0f} Pcs", f"সেলস: {s_row['Pen_D_Order']:,.0f} | শর্টফল: {s_row['Pen_D_Shortfall']:,.0f}")
+        d2.metric("স্টেশনারি ডেইলি টার্গেট", f"{s_row['Stat_D_Target']:,.0f} Pcs", f"সেলস: {s_row['Stat_D_Order']:,.0f} | শর্টফল: {s_row['Stat_D_Shortfall']:,.0f}")
+        d3.metric("খাতা ডেইলি টার্গেট (BDT)", f"৳{s_row['Khata_D_Target_BDT']:,.0f}", f"সেলস: ৳{s_row['Khata_D_Order_BDT']:,.0f} | শর্টফল: ৳{s_row['Khata_D_Shortfall_BDT']:,.0f}")
+
+        st.divider()
+        with st.form(f"daily_entry_form_{sr_idx}", clear_on_submit=True):
+            st.caption("দৈনিক খাতা কত টাকার সেল হয়েছে তা টাকায় (BDT) লিখুন — মাসিক সেলসে টাকা ও অটো টন যুক্ত হবে")
+            f1, f2, f3 = st.columns(3)
+            with f1:
+                entry_date = st.date_input("তারিখ", value=selected_date)
+            with f2:
+                summary_type = st.selectbox("সামারি ধরন", ["Half Summary", "Full Summary"])
+            with f3:
+                memo_cnt = st.number_input("ডেইলি মেমো সংখ্যা", min_value=0, value=0, step=1, format="%d")
+
+            f4, f5, f6 = st.columns(3)
+            with f4:
+                pen_ord = st.number_input("কলম ডেইলি সেলস (Pcs)", min_value=0.0, value=0.0, step=10.0, format="%.0f")
+            with f5:
+                stat_ord = st.number_input("স্টেশনারি ডেইলি সেলস (Pcs)", min_value=0.0, value=0.0, step=10.0, format="%.0f")
+            with f6:
+                khata_ord_bdt = st.number_input("খাতা ডেইলি সেলস (BDT)", min_value=0.0, value=0.0, step=5000.0, format="%.0f")
+
+            note_txt = st.text_input("এলাকা / নোট (ঐচ্ছিক)")
+            submit_daily = st.form_submit_button("ডেইলি এন্ট্রি জমা দিন")
+
+            if submit_daily:
+                if pen_ord <= 0 and stat_ord <= 0 and khata_ord_bdt <= 0 and memo_cnt <= 0:
+                    st.warning("অন্তত একটি সেলসের পরিমাণ বা মেমো সংখ্যা দিন।")
+                else:
+                    khata_ord_ton = float(khata_ord_bdt) / KHATA_RATE_PER_TON
+                    sales_ws.append_row([
+                        str(entry_date),
+                        sr_slot,
+                        sr_name,
+                        summary_type,
+                        round(float(pen_ord), 2),
+                        round(float(stat_ord), 2),
+                        round(float(khata_ord_bdt), 2),
+                        round(khata_ord_ton, 4),
+                        int(memo_cnt),
+                        note_txt.strip(),
+                    ])
+                    st.success("ডেইলি এন্ট্রি সেভ হয়েছে এবং মাসিক সেলসে (টাকা ও টন) যোগ হয়েছে!")
+                    st.rerun()
+
+    st.markdown('<div class="section-heading">📋 আমার পূর্বের এন্ট্রিসমূহ</div>', unsafe_allow_html=True)
+    my_logs = sales_df[sales_df["SR_Slot"] == sr_slot] if not sales_df.empty else pd.DataFrame(columns=SALES_COLS)
+    if my_logs.empty:
+        st.info("এখনও কোনো এন্ট্রি পাওয়া যায়নি।")
     else:
-        st.dataframe(my_df.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
+        st.dataframe(my_logs.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
 
 
 # ==============================================================================
-# VIEW 2: TSM ALL SRs & TOTAL
+# VIEW 2: TSM DASHBOARD — ALL 6 SRs + SKU-WISE & GRAND TOTALS
 # ==============================================================================
 else:
     st.markdown(
         """
         <div class="hero-box">
-            <h1>TSM Sales &amp; Delivery Tracker — All SRs &amp; Total</h1>
-            <p>View every SR's daily &amp; monthly sales, delivery, target, shortfall &amp; Grand Total</p>
+            <h1>TSM ড্যাশবোর্ড — ৬ জন SR ও ৩টি SKU টোটাল</h1>
+            <p>SKU-ভিত্তিক ডেইলি টার্গেট, ডেইলি সেলস, মাসিক সেলস (খাতা: টাকা ও টন) এবং ৬ জন SR-এর ব্যক্তিগত রিপোর্ট দেখুন</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    tot_dt = rep_df["Day_Target"].sum()
-    tot_ds = rep_df["Day_Sales"].sum()
-    tot_dd = rep_df["Day_Delivery"].sum()
-    tot_dsh = max(0.0, tot_dt - tot_ds)
+    pen_d_tgt_tot = summary_df["Pen_D_Target"].sum()
+    pen_d_ord_tot = summary_df["Pen_D_Order"].sum()
+    pen_m_sales_tot = summary_df["Pen_M_Sales"].sum()
+    pen_m_tgt_tot = summary_df["Pen_M_Target"].sum()
 
-    tot_mt = rep_df["Month_Target"].sum()
-    tot_ms = rep_df["Month_Sales"].sum()
-    tot_md = rep_df["Month_Delivery"].sum()
-    tot_msh = max(0.0, tot_mt - tot_ms)
-    tot_ach = (tot_ms / tot_mt * 100.0) if tot_mt > 0 else 0.0
+    stat_d_tgt_tot = summary_df["Stat_D_Target"].sum()
+    stat_d_ord_tot = summary_df["Stat_D_Order"].sum()
+    stat_m_sales_tot = summary_df["Stat_M_Sales"].sum()
+    stat_m_tgt_tot = summary_df["Stat_M_Target"].sum()
 
-    st.subheader(f"Grand Total — All SRs ({rep_date_str})")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Total Day Target", f"BDT {tot_dt:,.0f}")
-    c2.metric("Total Day Sales", f"BDT {tot_ds:,.0f}", f"Memo: {int(rep_df['Day_Memo'].sum())}")
-    c3.metric("Total Day Delivery", f"BDT {tot_dd:,.0f}")
-    c4.metric("Total Day Shortfall", f"BDT {tot_dsh:,.0f}")
+    khata_d_tgt_bdt_tot = summary_df["Khata_D_Target_BDT"].sum()
+    khata_d_ord_bdt_tot = summary_df["Khata_D_Order_BDT"].sum()
+    khata_m_sales_bdt_tot = summary_df["Khata_M_Sales_BDT"].sum()
+    khata_m_sales_ton_tot = khata_m_sales_bdt_tot / KHATA_RATE_PER_TON
+    khata_m_tgt_bdt_tot = summary_df["Khata_M_Target_BDT"].sum()
+    khata_m_tgt_ton_tot = summary_df["Khata_M_Target_Ton"].sum()
 
-    c5, c6, c7, c8 = st.columns(4)
-    c5.metric("Total Month Target", f"BDT {tot_mt:,.0f}")
-    c6.metric("Total Month Sales", f"BDT {tot_ms:,.0f}", f"Memo: {int(rep_df['Month_Memo'].sum())}")
-    c7.metric("Total Month Delivery", f"BDT {tot_md:,.0f}")
-    c8.metric("Total Achievement %", f"{tot_ach:.1f}%", f"Short: BDT {tot_msh:,.0f}")
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    b1, b2, b3 = st.columns(3)
-    with b1:
+    st.markdown(f'<div class="section-heading">🎯 ৩টি SKU-ওয়াইজ টোটাল ({sel_date_str} ও মাস {month_prefix})</div>', unsafe_allow_html=True)
+    k1, k2, k3 = st.columns(3)
+    with k1:
         st.markdown(
             f"""
             <div class="sku-card sku-pen">
-                <div class="sku-title">All SRs — Pen</div>
-                <div class="sku-line">• Today: <b>{rep_df['Day_Pen_Pcs'].sum():,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{rep_df['Month_Pen_Pcs'].sum():,.0f} / {rep_df['Pen_Monthly_Pcs'].sum():,.0f} Pcs</b></div>
+                <div class="sku-title">১. কলম (Pen — Pcs)</div>
+                <div class="sku-line">• ডেইলি টোটাল টার্গেট: <b>{pen_d_tgt_tot:,.0f} Pcs</b></div>
+                <div class="sku-line">• ডেইলি টোটাল সেলস: <b>{pen_d_ord_tot:,.0f} Pcs</b></div>
+                <div class="sku-line">• মাসিক টোটাল সেলস: <b>{pen_m_sales_tot:,.0f} / {pen_m_tgt_tot:,.0f} Pcs</b></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with b2:
+    with k2:
         st.markdown(
             f"""
             <div class="sku-card sku-stat">
-                <div class="sku-title">All SRs — Stationery</div>
-                <div class="sku-line">• Today: <b>{rep_df['Day_Stat_Pcs'].sum():,.0f} Pcs</b></div>
-                <div class="sku-line">• Monthly: <b>{rep_df['Month_Stat_Pcs'].sum():,.0f} / {rep_df['Stationery_Monthly_Pcs'].sum():,.0f} Pcs</b></div>
+                <div class="sku-title">২. স্টেশনারি (Stationery — Pcs)</div>
+                <div class="sku-line">• ডেইলি টোটাল টার্গেট: <b>{stat_d_tgt_tot:,.0f} Pcs</b></div>
+                <div class="sku-line">• ডেইলি টোটাল সেলস: <b>{stat_d_ord_tot:,.0f} Pcs</b></div>
+                <div class="sku-line">• মাসিক টোটাল সেলস: <b>{stat_m_sales_tot:,.0f} / {stat_m_tgt_tot:,.0f} Pcs</b></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with b3:
+    with k3:
         st.markdown(
             f"""
             <div class="sku-card sku-khata">
-                <div class="sku-title">All SRs — Khata</div>
-                <div class="sku-line">• Today Order: <b>{rep_df['Day_Khata_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Day_Deliv_Khata_Ton'].sum():,.2f} Ton</b></div>
-                <div class="sku-line">• Monthly Order: <b>{rep_df['Month_Khata_Ton'].sum():,.2f} / {rep_df['Khata_Monthly_Ton'].sum():,.2f} Ton</b> | Delivery: <b>{rep_df['Month_Deliv_Khata_Ton'].sum():,.2f} Ton</b></div>
+                <div class="sku-title">৩. খাতা / বুক (Khata — BDT &amp; Ton)</div>
+                <div class="sku-line">• ডেইলি টোটাল টার্গেট: <b>৳{khata_d_tgt_bdt_tot:,.0f}</b></div>
+                <div class="sku-line">• ডেইলি টোটাল সেলস: <b>৳{khata_d_ord_bdt_tot:,.0f}</b></div>
+                <div class="sku-line">• মাসিক সেলস: <b>৳{khata_m_sales_bdt_tot:,.0f} ({khata_m_sales_ton_tot:,.2f} Ton)</b></div>
+                <div class="sku-line">• মাসিক টার্গেট: <b>৳{khata_m_tgt_bdt_tot:,.0f} ({khata_m_tgt_ton_tot:,.2f} Ton)</b></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.subheader("All SRs Summary")
-    summary_cols = [
-        "SR_Name", "Day_Target", "Day_Sales", "Day_Delivery", "Day_Shortfall", "Day_Memo",
-        "Month_Target", "Month_Sales", "Month_Delivery", "Month_Shortfall", "Ach_%", "Month_Memo",
+    st.markdown('<div class="section-heading">👥 ৬ জন SR-এর ব্যক্তিগত সামারি টেবিল</div>', unsafe_allow_html=True)
+    display_cols = [
+        "SR_Slot",
+        "SR_Name",
+        "Pen_D_Target",
+        "Pen_D_Order",
+        "Pen_D_Shortfall",
+        "Pen_M_Sales",
+        "Stat_D_Target",
+        "Stat_D_Order",
+        "Stat_D_Shortfall",
+        "Stat_M_Sales",
+        "Khata_D_Target_BDT",
+        "Khata_D_Order_BDT",
+        "Khata_D_Shortfall_BDT",
+        "Khata_M_Sales_BDT",
+        "Khata_M_Sales_Ton",
+        "Khata_M_Target_Ton",
+        "Day_Memo",
     ]
-    grand_row = pd.DataFrame([{
-        "SR_Name": "GRAND TOTAL",
-        "Day_Target": tot_dt,
-        "Day_Sales": tot_ds,
-        "Day_Delivery": tot_dd,
-        "Day_Shortfall": tot_dsh,
-        "Day_Memo": int(rep_df["Day_Memo"].sum()),
-        "Month_Target": tot_mt,
-        "Month_Sales": tot_ms,
-        "Month_Delivery": tot_md,
-        "Month_Shortfall": tot_msh,
-        "Ach_%": tot_ach,
-        "Month_Memo": int(rep_df["Month_Memo"].sum()),
+    total_row = pd.DataFrame([{
+        "SR_Slot": "TOTAL",
+        "SR_Name": "সব SR মোট",
+        "Pen_D_Target": pen_d_tgt_tot,
+        "Pen_D_Order": pen_d_ord_tot,
+        "Pen_D_Shortfall": summary_df["Pen_D_Shortfall"].sum(),
+        "Pen_M_Sales": pen_m_sales_tot,
+        "Stat_D_Target": stat_d_tgt_tot,
+        "Stat_D_Order": stat_d_ord_tot,
+        "Stat_D_Shortfall": summary_df["Stat_D_Shortfall"].sum(),
+        "Stat_M_Sales": stat_m_sales_tot,
+        "Khata_D_Target_BDT": khata_d_tgt_bdt_tot,
+        "Khata_D_Order_BDT": khata_d_ord_bdt_tot,
+        "Khata_D_Shortfall_BDT": summary_df["Khata_D_Shortfall_BDT"].sum(),
+        "Khata_M_Sales_BDT": khata_m_sales_bdt_tot,
+        "Khata_M_Sales_Ton": khata_m_sales_ton_tot,
+        "Khata_M_Target_Ton": khata_m_tgt_ton_tot,
+        "Day_Memo": int(summary_df["Day_Memo"].sum()),
     }])
-    st.dataframe(pd.concat([rep_df[summary_cols], grand_row[summary_cols]], ignore_index=True), width="stretch", hide_index=True)
+    st.dataframe(
+        pd.concat([summary_df[display_cols], total_row[display_cols]], ignore_index=True),
+        width="stretch",
+        hide_index=True,
+    )
 
-    st.subheader("All SR Entries Log")
+    st.markdown('<div class="section-heading">🗂️ সব এন্ট্রি লগ</div>', unsafe_allow_html=True)
     if sales_df.empty:
-        st.info("No entries yet.")
+        st.info("এখনও কোনো এন্ট্রি জমা পড়েনি।")
     else:
         st.dataframe(sales_df.drop(columns=["Dt"], errors="ignore").iloc[::-1], width="stretch", hide_index=True)
